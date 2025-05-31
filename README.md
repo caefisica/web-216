@@ -1,4 +1,4 @@
-# 216
+# Biblioteca 216
 
 El proyecto utiliza Supabase como sistema de gestión de base de datos. La base de datos de producción no está disponible para desarrollo local por motivos de seguridad, por lo que debes crear tu propia instancia en tu cuenta personal de Supabase (puedes usar tu cuenta de GitHub). Cuando realices commits o crees branches en el repositorio, el CI construirá la aplicación utilizando la base de datos de producción.
 
