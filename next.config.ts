@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
+import { setupDevPlatform } from "@cloudflare/next-on-pages/next-dev";
 
 const nextConfig: NextConfig = {
   images: {
@@ -22,6 +23,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
 };
+
+if (process.env.NODE_ENV === "development") {
+  await setupDevPlatform();
+}
 
 const withMDX = createMDX({});
 
