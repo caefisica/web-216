@@ -1,12 +1,15 @@
 {
   "private": true,
   "scripts": {
+    "clean": "shx rm -rf .next node_modules bun.lock",
     "db:seed": "node supabase/seed.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "shx rm -rf .next node_modules bun.lock"
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "preview": "npm run pages:build && wrangler pages dev",
+    "deploy": "npm run pages:build && wrangler pages deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -68,6 +71,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.12",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.2",
@@ -79,6 +83,9 @@
     "typescript": "^5.8.3"
   },
   "trustedDependencies": [
-    "unrs-resolver"
+    "esbuild",
+    "sharp",
+    "unrs-resolver",
+    "workerd"
   ]
 }
