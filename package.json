@@ -68,6 +68,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.12",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.2",
@@ -79,6 +80,9 @@
     "typescript": "^5.8.3"
   },
   "trustedDependencies": [
-    "unrs-resolver"
+    "esbuild",
+    "sharp",
+    "unrs-resolver",
+    "workerd"
   ]
 }
