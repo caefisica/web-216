@@ -126,5 +126,3 @@ Este proyecto se encuentra bajo la [licencia MIT](LICENCE), lo que significa que
 Redactado por David Duran, Coordinador General del [@caefisica](https://github.com/caefisica/web-main) (2022-actualidad)
 
 [^1]: Esto permitirá hacer seguimiento objetivo del tiempo exacto que la biblioteca permanece abierta.
-
-[^2]: Olvidé preguntarle y no tengo forma de contactarle actualmente 😅
