@@ -28,9 +28,9 @@ O en caso de que busques algo específico:
 | ¿Qué necesitas?        | ¿A dónde ir?                                                     |
 | ---------------------- | ---------------------------------------------------------------- |
 | Empezar a programar    | [/docs/01-getting-started.md](/docs/01-getting-started.md)       |
-| Contribuir al proyecto | [./docs/09-contributing.md](./docs/09-contributing.md)           |
+| Contribuir al proyecto | [/docs/09-contributing.md](./docs/09-contributing.md)           |
 | Reportar un problema   | [https://github.com/caefisica/web-216/issues](https://github.com/caefisica/web-216/issues) |
-| Contactar al equipo    | [216.caefisica.com/contacto](https://216.caefisica.com/contacto) |
+| Contactar al equipo    | [https://216.caefisica.com/contacto](https://216.caefisica.com/contacto) |
 <!-- prettier-ignore-end -->
 
 ## Contexto y por qué existe este proyecto 🤔
