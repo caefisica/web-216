@@ -12,10 +12,10 @@ La biblioteca física se encuentra en el ambiente 216 (segundo piso) del pabell�
 
 ## Tabla de contenido
 
-- [Contexto y por qué existe este proyecto 🤔](#contexto-y-por-qué-existe-este-proyecto-🤔)
+- [Contexto y por qué existe este proyecto 🤔](#contexto-y-por-qué-existe-este-proyecto-)
   - [Un poco de historia](#un-poco-de-historia)
-- [Visión 👀, misión 🎯 y estrategia a futuro 🗺️](#visión-👀-misión-🎯-y-estrategia-a-futuro-🗺️)
-- [Estrategia y plan 🤔](#estrategia-y-plan-🤔)
+- [Visión 👀, misión 🎯 y estrategia a futuro 🗺️](#visión--misión--y-estrategia-a-futuro-%EF%B8%8F)
+- [Estrategia y plan 🤔](#estrategia-y-plan-)
   - [Estrategia de priorización](#estrategia-de-priorización)
 - [Tech Stack](#tech-stack)
 - [¿Cómo participar?](#cómo-participar)
