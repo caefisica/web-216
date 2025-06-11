@@ -65,7 +65,7 @@
     "resend": "^4.5.1",
     "sonner": "^2.0.4",
     "sugar-high": "^0.9.3",
-    "tailwind-merge": "^2.5.5",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
     "zod": "^3.24.1"
