@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,44 +16,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Book } from "@/lib/types";
-import { supabase } from "@/lib/supabase";
-import { toast } from "@/hooks/use-toast";
 import { Edit, Trash2, Heart, BookOpen } from "lucide-react";
+import type { BookDetailed } from "../../books/types";
 
 interface AdminBookCardProps {
-  book: Book;
-  onUpdate: () => void;
+  book: BookDetailed;
+  onDelete: () => Promise<void>;
+  isDeleting?: boolean;
 }
 
-export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase.from("books").delete().eq("id", book.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Libro eliminado",
-        description: "El libro ha sido eliminado correctamente.",
-      });
-
-      onUpdate();
-    } catch (error) {
-      console.error("Error al eliminar el libro:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el libro.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
+export function AdminBookCard({ book, onDelete, isDeleting }: AdminBookCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -81,45 +52,12 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
     }
   };
 
-  const heartsCount = book.hearts_count?.[0]?.count || 0;
+  const heartsCount = book.heartsCount || 0;
+  const coverImage = book.coverImage || book.images?.[0];
+  const imageUrl = coverImage?.imageUrl;
 
-  // Get the image to display - prioritize cover image, then first image, then legacy image_url
-  const getBookImage = () => {
-    // First try the new multi-image system
-    if (book.cover_image?.image_url) {
-      return book.cover_image.image_url;
-    }
-
-    // Then try first image from images array
-    if (book.images && book.images.length > 0) {
-      return book.images[0].image_url;
-    }
-
-    // Finally fallback to legacy image_url
-    return book.image_url;
-  };
-
-  const bookImageUrl = getBookImage();
-
-  // Get categories to display
-  const getCategoriesToDisplay = () => {
-    // Use new multiple categories system if available
-    if (book.categories && book.categories.length > 0) {
-      return book.categories.slice(0, 2); // Show first 2 categories
-    }
-
-    // Fallback to legacy single category
-    if (book.category) {
-      return [book.category];
-    }
-
-    return [];
-  };
-
-  const categoriesToDisplay = getCategoriesToDisplay();
-  const remainingCategoriesCount = book.categories
-    ? Math.max(0, book.categories.length - 2)
-    : 0;
+  const categoriesToDisplay = book.categories?.slice(0, 2) || [];
+  const remainingCategoriesCount = Math.max(0, (book.categories?.length || 0) - 2);
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
@@ -141,13 +79,13 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>Eliminar libro</AlertDialogTitle>
                 <AlertDialogDescription>
-                  ¿Está seguro de que desea eliminar &quot;{book.title}&quot;?
-                  Esta acción no se puede deshacer.
+                  ¿Está seguro de que desea eliminar &quot;{book.title}&quot;? Esta acción no se
+                  puede deshacer.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                <AlertDialogAction onClick={onDelete} disabled={isDeleting}>
                   {isDeleting ? "Eliminando..." : "Eliminar"}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -158,10 +96,10 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
 
       <Link href={`/books/${book.id}`} className="block">
         <div className="aspect-[3/4] relative overflow-hidden bg-gray-100">
-          {bookImageUrl ? (
+          {imageUrl ? (
             <Image
-              src={bookImageUrl || "/placeholder.svg"}
-              alt={book.cover_image?.alt_text || book.title}
+              src={imageUrl || "/placeholder.svg"}
+              alt={coverImage?.altText || book.title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -174,9 +112,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
 
           {/* Status Badge */}
           <div className="absolute top-2 left-2">
-            <Badge
-              className={`text-xs font-medium ${getStatusColor(book.status)}`}
-            >
+            <Badge className={`text-xs font-medium ${getStatusColor(book.status)}`}>
               {getStatusText(book.status)}
             </Badge>
           </div>
@@ -184,10 +120,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
           {/* Hearts Count */}
           {heartsCount > 0 && (
             <div className="absolute bottom-2 left-2">
-              <Badge
-                variant="secondary"
-                className="text-xs bg-white/90 text-gray-700"
-              >
+              <Badge variant="secondary" className="text-xs bg-white/90 text-gray-700">
                 <Heart className="h-3 w-3 mr-1 fill-red-500 text-red-500" />
                 {heartsCount}
               </Badge>
@@ -197,10 +130,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
           {/* Multiple Images Indicator */}
           {book.images && book.images.length > 1 && (
             <div className="absolute bottom-2 right-2">
-              <Badge
-                variant="secondary"
-                className="text-xs bg-black/70 text-white"
-              >
+              <Badge variant="secondary" className="text-xs bg-black/70 text-white">
                 +{book.images.length - 1}
               </Badge>
             </div>
@@ -214,15 +144,11 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
             </h3>
             <p className="text-sm text-gray-600 line-clamp-1">{book.author}</p>
 
-            {/* Multiple Categories Display */}
+            {/* Categories Display */}
             {categoriesToDisplay.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {categoriesToDisplay.map((category) => (
-                  <Badge
-                    key={category.id}
-                    variant="outline"
-                    className="text-xs"
-                  >
+                  <Badge key={category.id} variant="outline" className="text-xs">
                     {category.name}
                   </Badge>
                 ))}
@@ -234,10 +160,8 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
               </div>
             )}
 
-            {book.publication_year && (
-              <p className="text-xs text-gray-500">
-                Publicado: {book.publication_year}
-              </p>
+            {book.publicationYear && (
+              <p className="text-xs text-gray-500">Publicado: {book.publicationYear}</p>
             )}
           </div>
         </CardContent>

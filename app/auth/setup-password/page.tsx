@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,23 +71,13 @@ export default function SetupPasswordPage() {
     setError("");
 
     try {
-      // Use the recovery token to set the password
-      const { data, error } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: "recovery",
+      const { error } = await authClient.resetPassword({
+        newPassword: password,
+        token: token,
       });
 
       if (error) {
         throw error;
-      }
-
-      // Update the password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (updateError) {
-        throw updateError;
       }
 
       setSuccess(true);
@@ -100,9 +90,10 @@ export default function SetupPasswordPage() {
       setTimeout(() => {
         router.push("/auth/signin");
       }, 2000);
-    } catch (error: any) {
-      console.error("Error setting up password:", error);
-      setError(error.message || "Error al configurar la contraseña");
+    } catch (err: unknown) {
+      console.error("Error setting up password:", err);
+      const errorMessage = err instanceof Error ? err.message : "Error al configurar la contraseña";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -115,12 +106,10 @@ export default function SetupPasswordPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <CheckCircle className="mx-auto h-12 w-12 text-green-600" />
-              <h2 className="mt-4 text-xl font-bold text-gray-900">
-                ¡Contraseña configurada!
-              </h2>
+              <h2 className="mt-4 text-xl font-bold text-gray-900">¡Contraseña configurada!</h2>
               <p className="mt-2 text-gray-600">
-                Tu contraseña ha sido configurada exitosamente. Serás redirigido
-                al inicio de sesión.
+                Tu contraseña ha sido configurada exitosamente. Serás redirigido al inicio de
+                sesión.
               </p>
             </div>
           </CardContent>
@@ -138,9 +127,7 @@ export default function SetupPasswordPage() {
             <CardTitle className="mt-4 text-2xl font-bold text-gray-900">
               Configura tu contraseña
             </CardTitle>
-            <p className="mt-2 text-gray-600">
-              Establece una contraseña segura para tu cuenta
-            </p>
+            <p className="mt-2 text-gray-600">Establece una contraseña segura para tu cuenta</p>
           </div>
         </CardHeader>
         <CardContent>
@@ -198,27 +185,17 @@ export default function SetupPasswordPage() {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-              <p className="font-medium text-blue-900 mb-2">
-                Requisitos de contraseña:
-              </p>
+              <p className="font-medium text-blue-900 mb-2">Requisitos de contraseña:</p>
               <ul className="text-blue-700 space-y-1">
                 <li className="flex items-center gap-2">
-                  <span
-                    className={
-                      password.length >= 8 ? "text-green-600" : "text-gray-400"
-                    }
-                  >
+                  <span className={password.length >= 8 ? "text-green-600" : "text-gray-400"}>
                     {password.length >= 8 ? "✓" : "○"}
                   </span>
                   Al menos 8 caracteres
                 </li>
                 <li className="flex items-center gap-2">
                   <span
-                    className={
-                      /(?=.*[a-z])/.test(password)
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }
+                    className={/(?=.*[a-z])/.test(password) ? "text-green-600" : "text-gray-400"}
                   >
                     {/(?=.*[a-z])/.test(password) ? "✓" : "○"}
                   </span>
@@ -226,24 +203,14 @@ export default function SetupPasswordPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span
-                    className={
-                      /(?=.*[A-Z])/.test(password)
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }
+                    className={/(?=.*[A-Z])/.test(password) ? "text-green-600" : "text-gray-400"}
                   >
                     {/(?=.*[A-Z])/.test(password) ? "✓" : "○"}
                   </span>
                   Una letra mayúscula
                 </li>
                 <li className="flex items-center gap-2">
-                  <span
-                    className={
-                      /(?=.*\d)/.test(password)
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }
-                  >
+                  <span className={/(?=.*\d)/.test(password) ? "text-green-600" : "text-gray-400"}>
                     {/(?=.*\d)/.test(password) ? "✓" : "○"}
                   </span>
                   Un número

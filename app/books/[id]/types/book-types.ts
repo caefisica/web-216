@@ -1,18 +1,6 @@
-import type { Book } from "@/lib/types";
+import { Book } from "@/src/features/books/types";
 
-export interface BookWithRelations extends Omit<Book, "category"> {
-  category?: { name: string };
-  hearts_count?: { count: number }[];
-}
-
-export interface BookFormData {
-  title?: string;
-  author?: string;
-  isbn?: string;
-  publisher?: string;
-  location?: string;
-  description?: string;
-}
+export type BookFormData = Partial<Book>;
 
 export interface BookInfoItemProps {
   icon: React.ComponentType<{ className?: string }>;

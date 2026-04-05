@@ -1,16 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  BookOpen,
-  Mail,
-  Phone,
-  MapPin,
-  Clock,
-  Heart,
-  Users,
-  Award,
-} from "lucide-react";
+import { BookOpen, Mail, Phone, MapPin, Clock, Heart, Users, Award } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
@@ -25,17 +16,13 @@ export function Footer() {
                 <BookOpen className="h-5 w-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-semibold leading-none">
-                  Biblioteca 216
-                </span>
-                <span className="text-xs text-gray-500 leading-none">
-                  Colección de física
-                </span>
+                <span className="text-lg font-semibold leading-none">Biblioteca 216</span>
+                <span className="text-xs text-gray-500 leading-none">Colección de física</span>
               </div>
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed mb-4">
-              Apoyando la educación e investigación en física desde ~1990 con
-              una colección completa y el compromiso de estudiantes como tú.
+              Apoyando la educación e investigación en física desde ~1990 con una colección completa
+              y el compromiso de estudiantes como tú.
             </p>
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <div className="flex items-center">
@@ -134,10 +121,7 @@ export function Footer() {
               <div className="flex items-start">
                 <MapPin className="h-4 w-4 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-gray-600">
-                  <p>
-                    Ambiente 216, Pabellón de Pregrado de la Facultad de
-                    Ciencias Físicas
-                  </p>
+                  <p>Ambiente 216, Pabellón de Pregrado de la Facultad de Ciencias Físicas</p>
                   <p>Av. Germán Amézaga s/n</p>
                 </div>
               </div>
@@ -175,8 +159,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="text-sm text-gray-500 mb-4 md:mb-0">
-            © {new Date().getFullYear()} Biblioteca 216. Todos los derechos
-            reservados.
+            © {new Date().getFullYear()} Biblioteca 216. Todos los derechos reservados.
           </div>
           <div className="flex items-center space-x-6">
             <Link

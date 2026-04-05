@@ -11,10 +11,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Heart, BookOpen } from "lucide-react";
-import type { BookWithRelations } from "../types/book-types";
+import type { BookDetailed } from "@/src/features/books/types";
 
 interface BookActionsProps {
-  book: BookWithRelations;
+  book: BookDetailed;
   isHearted: boolean;
   heartsCount: number;
   onHeart: () => void;
@@ -72,11 +72,7 @@ export function BookActions({
                   className="mt-2"
                 />
               </div>
-              <Button
-                onClick={onBorrowRequest}
-                disabled={borrowing}
-                className="w-full"
-              >
+              <Button onClick={onBorrowRequest} disabled={borrowing} className="w-full">
                 {borrowing ? "Enviando..." : "Enviar solicitud"}
               </Button>
             </div>

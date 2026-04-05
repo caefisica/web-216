@@ -10,11 +10,7 @@ const teamMembers = [
     role: "Bibliotecario jefe",
     image: "/placeholder.svg?height=200&width=200",
     bio: "La Dra. Chen ha liderado nuestra biblioteca durante más de 15 años. Tiene un doctorado en Física del MIT y un MLIS de la Universidad de Columbia. Sus intereses de investigación incluyen la teoría de la información cuántica y la biblioteconomía.",
-    specialties: [
-      "Física cuántica",
-      "Ciencia de la información",
-      "Colecciones digitales",
-    ],
+    specialties: ["Física cuántica", "Ciencia de la información", "Colecciones digitales"],
     email: "s.chen@physics.university.edu",
     phone: "(555) 123-4567",
   },
@@ -23,11 +19,7 @@ const teamMembers = [
     role: "Bibliotecario senior de física",
     image: "/placeholder.svg?height=200&width=200",
     bio: "El Prof. Rodriguez se especializa en recursos de física computacional y ha escrito varios artículos sobre gestión de información científica. Se unió a nuestro equipo en 2018 después de 10 años en la investigación académica.",
-    specialties: [
-      "Física computacional",
-      "Métodos de investigación",
-      "Gestión de datos",
-    ],
+    specialties: ["Física computacional", "Métodos de investigación", "Gestión de datos"],
     email: "m.rodriguez@physics.university.edu",
     phone: "(555) 123-4568",
   },
@@ -36,11 +28,7 @@ const teamMembers = [
     role: "Especialista en colecciones",
     image: "/placeholder.svg?height=200&width=200",
     bio: "La Dra. Watson gestiona nuestra colección de libros raros y supervisa las adquisiciones. Tiene una experiencia particular en textos históricos de física y la evolución de la literatura científica.",
-    specialties: [
-      "Física histórica",
-      "Libros raros",
-      "Desarrollo de colecciones",
-    ],
+    specialties: ["Física histórica", "Libros raros", "Desarrollo de colecciones"],
     email: "e.watson@physics.university.edu",
     phone: "(555) 123-4569",
   },
@@ -49,11 +37,7 @@ const teamMembers = [
     role: "Gerente de sistemas digitales",
     image: "/placeholder.svg?height=200&width=200",
     bio: "James lidera nuestras iniciativas digitales y mantiene nuestro sistema de catálogo en línea. Tiene experiencia en informática y tecnología de bibliotecas, lo que garantiza que nuestros recursos digitales sean accesibles y estén actualizados.",
-    specialties: [
-      "Sistemas digitales",
-      "Gestión de bases de datos",
-      "Experiencia de usuario",
-    ],
+    specialties: ["Sistemas digitales", "Gestión de bases de datos", "Experiencia de usuario"],
     email: "j.park@physics.university.edu",
     phone: "(555) 123-4570",
   },
@@ -75,11 +59,7 @@ const teamMembers = [
     role: "Coordinador de servicios estudiantiles",
     image: "/placeholder.svg?height=200&width=200",
     bio: "Alex se centra en el apoyo a los estudiantes de pregrado y organiza grupos de estudio y sesiones de tutoría. Tiene una maestría en Educación Física y le apasiona hacer que la física sea accesible para todos los estudiantes.",
-    specialties: [
-      "Apoyo estudiantil",
-      "Educación física",
-      "Programas de divulgación",
-    ],
+    specialties: ["Apoyo estudiantil", "Educación física", "Programas de divulgación"],
     email: "a.kumar@physics.university.edu",
     phone: "(555) 123-4572",
   },
@@ -90,12 +70,10 @@ export default function TeamPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="border-b bg-white">
         <div className="container mx-auto px-6 py-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-3">
-            Nuestro equipo
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-3">Nuestro equipo</h1>
           <p className="text-gray-600">
-            Conoce a los profesionales dedicados que hacen de nuestra biblioteca
-            un centro de excelencia
+            Conoce a los profesionales dedicados que hacen de nuestra biblioteca un centro de
+            excelencia
           </p>
         </div>
       </div>
@@ -121,9 +99,7 @@ export default function TeamPage() {
                     <p className="text-blue-600 font-medium">{member.role}</p>
                   </div>
 
-                  <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                    {member.bio}
-                  </p>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">{member.bio}</p>
 
                   <div className="mb-4">
                     <h4 className="font-semibold mb-2 flex items-center text-sm">
@@ -132,11 +108,7 @@ export default function TeamPage() {
                     </h4>
                     <div className="flex flex-wrap gap-1">
                       {member.specialties.map((specialty, idx) => (
-                        <Badge
-                          key={idx}
-                          variant="secondary"
-                          className="text-xs"
-                        >
+                        <Badge key={idx} variant="secondary" className="text-xs">
                           {specialty}
                         </Badge>
                       ))}
@@ -178,14 +150,12 @@ export default function TeamPage() {
                 Únete a nuestro equipo
               </h3>
               <p className="text-blue-800 text-sm mb-4">
-                Siempre estamos buscando personas apasionadas para unirse a
-                nuestra misión de promover la educación en física y el apoyo a
-                la investigación.
+                Siempre estamos buscando personas apasionadas para unirse a nuestra misión de
+                promover la educación en física y el apoyo a la investigación.
               </p>
               <p className="text-blue-700 text-sm">
-                Puede encontrar las vacantes actuales y la información sobre
-                cómo presentar una solicitud en la página de carreras de nuestra
-                universidad.
+                Puede encontrar las vacantes actuales y la información sobre cómo presentar una
+                solicitud en la página de carreras de nuestra universidad.
               </p>
             </CardContent>
           </Card>
@@ -197,14 +167,13 @@ export default function TeamPage() {
                 Oportunidades de voluntariado
               </h3>
               <p className="text-green-800 text-sm mb-4">
-                Los estudiantes de posgrado y los miembros del profesorado
-                pueden ofrecerse como voluntarios para ayudar con proyectos
-                especiales, la organización de colecciones y los programas de
-                tutoría para estudiantes.
+                Los estudiantes de posgrado y los miembros del profesorado pueden ofrecerse como
+                voluntarios para ayudar con proyectos especiales, la organización de colecciones y
+                los programas de tutoría para estudiantes.
               </p>
               <p className="text-green-700 text-sm">
-                Póngase en contacto con nosotros para obtener información sobre
-                las oportunidades de voluntariado actuales.
+                Póngase en contacto con nosotros para obtener información sobre las oportunidades de
+                voluntariado actuales.
               </p>
             </CardContent>
           </Card>

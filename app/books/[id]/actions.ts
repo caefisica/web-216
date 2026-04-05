@@ -1,7 +1,34 @@
 "use server";
 
-import { createServerClient } from "@/lib/supabase";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { books, bookImages, bookCategories } from "@/lib/db/schema";
+import { moveFile, deleteFile, getFileUrl, uploadFile } from "@/lib/s3";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { eq, desc } from "drizzle-orm";
+
+export async function uploadBookImage(formData: FormData) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) throw new Error("Unauthorized");
+
+  const file = formData.get("file") as File;
+  if (!file) throw new Error("No file provided");
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const fileName = `temp/${crypto.randomUUID()}-${file.name}`;
+
+  await uploadFile(fileName, buffer, file.type);
+  const url = await getFileUrl(fileName);
+
+  return {
+    success: true,
+    url: url,
+    fileName: fileName,
+  };
+}
 
 interface MoveImageResult {
   success: boolean;
@@ -16,12 +43,12 @@ interface SaveBookData {
     author: string;
     isbn?: string;
     publisher?: string;
-    publication_year?: number;
+    publicationYear?: number;
     pages?: number;
     description?: string;
     status: string;
     location?: string;
-    category_id?: string;
+    categoryId?: string;
   };
   uploadedImages: Array<{
     id: string;
@@ -37,30 +64,28 @@ export async function moveImageFromTemp(
   bookId: string,
 ): Promise<MoveImageResult> {
   try {
-    const supabase = createServerClient();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
+      return { success: false, error: "Unauthorized" };
+    }
 
     // Generate new permanent file path
     const fileExt = tempFileName.split(".").pop();
     const newFileName = `${bookId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-    // Move file from temp to permanent location
-    const { data, error } = await supabase.storage
-      .from("book-images")
-      .move(`temp/${tempFileName}`, newFileName);
+    await moveFile(`temp/${tempFileName}`, newFileName);
 
-    if (error) {
-      console.error("Error moving file:", error);
-      return { success: false, error: error.message };
-    }
-
-    // Get public URL for the new location
-    const { data: publicUrlData } = supabase.storage
-      .from("book-images")
-      .getPublicUrl(newFileName);
+    // Construct the URL (S3/R2 usually follows a standard pattern)
+    // For R2, it's often https://<ACCOUNT_ID>.r2.cloudflarestorage.com/<BUCKET>/<KEY>
+    // but the user might prefer a custom domain. For now, we'll store the key or a generated public URL if the bucket is public.
+    const publicUrl = `${process.env.S3_PUBLIC_URL}/${newFileName}`;
 
     return {
       success: true,
-      url: publicUrlData.publicUrl,
+      url: publicUrl,
     };
   } catch (error) {
     console.error("Unexpected error moving file:", error);
@@ -73,13 +98,17 @@ export async function moveImageFromTemp(
 
 export async function saveBookWithImages(data: SaveBookData) {
   try {
-    const supabase = createServerClient();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) throw new Error("Unauthorized");
+
     const { bookId, bookData, uploadedImages, selectedCategories } = data;
 
     console.log("Starting save process for book:", bookId);
-    console.log("Uploaded images:", uploadedImages.length);
 
-    // 1. Move uploaded images from temp to permanent storage
+    // 1. Move uploaded images
     const finalImages: Array<{
       url: string;
       isCover: boolean;
@@ -87,111 +116,63 @@ export async function saveBookWithImages(data: SaveBookData) {
     }> = [];
 
     for (const image of uploadedImages) {
-      console.log("Processing image:", image.fileName);
       const moveResult = await moveImageFromTemp(image.fileName, bookId);
-
       if (moveResult.success && moveResult.url) {
         finalImages.push({
           url: moveResult.url,
           isCover: image.isCover,
           altText: image.altText || "",
         });
-        console.log("Successfully moved image:", image.fileName);
-      } else {
-        console.error(
-          `Failed to move image ${image.fileName}:`,
-          moveResult.error,
-        );
-        // Continue with other images even if one fails
       }
     }
 
-    console.log("Final images to save:", finalImages.length);
-
     // 2. Update book basic information
-    const { error: updateError } = await supabase
-      .from("books")
-      .update({
+    await db
+      .update(books)
+      .set({
         ...bookData,
-        updated_at: new Date().toISOString(),
+        updatedAt: new Date(),
       })
-      .eq("id", bookId);
-
-    if (updateError) {
-      console.error("Error updating book:", updateError);
-      throw new Error(`Failed to update book: ${updateError.message}`);
-    }
+      .where(eq(books.id, bookId));
 
     console.log("Book updated successfully");
 
     // 3. Insert new images into book_images table
     if (finalImages.length > 0) {
-      // Get current image count for display_order
-      const { data: existingImages } = await supabase
-        .from("book_images")
-        .select("display_order")
-        .eq("book_id", bookId)
-        .order("display_order", { ascending: false })
+      const existingImagesList = await db
+        .select({
+          displayOrder: bookImages.displayOrder,
+        })
+        .from(bookImages)
+        .where(eq(bookImages.bookId, bookId))
+        .orderBy(desc(bookImages.displayOrder))
         .limit(1);
 
       const nextDisplayOrder =
-        existingImages && existingImages.length > 0
-          ? (existingImages[0].display_order || 0) + 1
-          : 0;
+        existingImagesList.length > 0 ? (existingImagesList[0].displayOrder || 0) + 1 : 0;
 
       const imageRecords = finalImages.map((img, index) => ({
-        book_id: bookId,
-        image_url: img.url,
-        is_cover: img.isCover,
-        alt_text: img.altText || null,
-        display_order: nextDisplayOrder + index,
+        bookId: bookId,
+        imageUrl: img.url,
+        isCover: img.isCover,
+        altText: img.altText || null,
+        displayOrder: nextDisplayOrder + index,
       }));
 
-      console.log("Inserting image records:", imageRecords);
-
-      const { error: insertImagesError, data: insertedImages } = await supabase
-        .from("book_images")
-        .insert(imageRecords)
-        .select();
-
-      if (insertImagesError) {
-        console.error("Error inserting image records:", insertImagesError);
-        throw new Error(
-          `Failed to insert image records: ${insertImagesError.message}`,
-        );
-      }
-
-      console.log("Images inserted successfully:", insertedImages?.length || 0);
+      await db.insert(bookImages).values(imageRecords);
+      console.log("Images inserted successfully");
     }
 
     // 4. Handle multiple categories
     try {
-      // First, delete existing category associations
-      const { error: deleteError } = await supabase
-        .from("book_categories")
-        .delete()
-        .eq("book_id", bookId);
+      await db.delete(bookCategories).where(eq(bookCategories.bookId, bookId));
 
-      if (deleteError) {
-        console.warn("Error deleting existing categories:", deleteError);
-      }
-
-      // Then, insert new category associations
       if (selectedCategories.length > 0) {
         const categoryInserts = selectedCategories.map((categoryId) => ({
-          book_id: bookId,
-          category_id: categoryId,
+          bookId: bookId,
+          categoryId: categoryId,
         }));
-
-        const { error: categoryError } = await supabase
-          .from("book_categories")
-          .insert(categoryInserts);
-
-        if (categoryError) {
-          console.warn("Could not update multiple categories:", categoryError);
-        } else {
-          console.log("Categories updated successfully");
-        }
+        await db.insert(bookCategories).values(categoryInserts);
       }
     } catch (categoryError) {
       console.warn("Multiple categories error:", categoryError);
@@ -216,19 +197,10 @@ export async function saveBookWithImages(data: SaveBookData) {
 
 export async function cleanupTempFiles(fileNames: string[]) {
   try {
-    const supabase = createServerClient();
-
-    const filePaths = fileNames.map((fileName) => `temp/${fileName}`);
-
-    const { error } = await supabase.storage
-      .from("book-images")
-      .remove(filePaths);
-
-    if (error) {
-      console.error("Error cleaning up temp files:", error);
+    for (const fileName of fileNames) {
+      await deleteFile(`temp/${fileName}`);
     }
-
-    return { success: !error };
+    return { success: true };
   } catch (error) {
     console.error("Unexpected error cleaning up temp files:", error);
     return { success: false };
@@ -237,41 +209,36 @@ export async function cleanupTempFiles(fileNames: string[]) {
 
 export async function deleteBookImage(imageId: string, bookId: string) {
   try {
-    const supabase = createServerClient();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) throw new Error("Unauthorized");
 
     // Get image info first
-    const { data: imageData, error: fetchError } = await supabase
-      .from("book_images")
-      .select("image_url")
-      .eq("id", imageId)
-      .single();
+    const imageDataList = await db
+      .select({
+        imageUrl: bookImages.imageUrl,
+      })
+      .from(bookImages)
+      .where(eq(bookImages.id, imageId))
+      .limit(1);
 
-    if (fetchError || !imageData) {
+    if (imageDataList.length === 0) {
       throw new Error("Image not found");
     }
 
-    // Extract file path from URL
-    const url = new URL(imageData.image_url);
-    const filePath = url.pathname.split("/").slice(-2).join("/"); // Get last two parts of path
+    const imageData = imageDataList[0];
 
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from("book-images")
-      .remove([filePath]);
+    // Extract file path from URL (key)
+    // URL pattern: https://.../book-id/timestamp_uuid.ext
+    const url = new URL(imageData.imageUrl);
+    const parts = url.pathname.split("/");
+    const key = parts.slice(parts.length - 2).join("/");
 
-    if (storageError) {
-      console.error("Error deleting from storage:", storageError);
-    }
+    await deleteFile(key);
 
     // Delete from database
-    const { error: dbError } = await supabase
-      .from("book_images")
-      .delete()
-      .eq("id", imageId);
-
-    if (dbError) {
-      throw new Error(`Failed to delete image record: ${dbError.message}`);
-    }
+    await db.delete(bookImages).where(eq(bookImages.id, imageId));
 
     // Revalidate the page
     revalidatePath(`/books/${bookId}`);
@@ -286,30 +253,20 @@ export async function deleteBookImage(imageId: string, bookId: string) {
   }
 }
 
-export async function setCoverImage(
-  imageId: string,
-  bookId: string,
-  isExisting: boolean,
-) {
+export async function setCoverImage(imageId: string, bookId: string, isExisting: boolean) {
   try {
-    const supabase = createServerClient();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) throw new Error("Unauthorized");
 
     if (isExisting) {
-      // Update existing images in database
-      await supabase
-        .from("book_images")
-        .update({ is_cover: false })
-        .eq("book_id", bookId);
+      await db.update(bookImages).set({ isCover: false }).where(eq(bookImages.bookId, bookId));
 
-      await supabase
-        .from("book_images")
-        .update({ is_cover: true })
-        .eq("id", imageId);
+      await db.update(bookImages).set({ isCover: true }).where(eq(bookImages.id, imageId));
     }
 
-    // Revalidate the page
     revalidatePath(`/books/${bookId}`);
-
     return { success: true };
   } catch (error) {
     console.error("Error setting cover image:", error);

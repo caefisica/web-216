@@ -2,30 +2,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  MapPin,
-  Clock,
-  Car,
-  Bus,
-  Bike,
-  Phone,
-  Mail,
-  Wifi,
-  Coffee,
-  BookOpen,
-} from "lucide-react";
+import { MapPin, Clock, Car, Bus, Bike, Phone, Mail, Wifi, Coffee, BookOpen } from "lucide-react";
 
 export default function LocationPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="border-b bg-white">
         <div className="container mx-auto px-6 py-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-3">
-            Visita nuestra biblioteca
-          </h1>
-          <p className="text-gray-600">
-            Encuéntranos en el campus y planifica tu visita
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight mb-3">Visita nuestra biblioteca</h1>
+          <p className="text-gray-600">Encuéntranos en el campus y planifica tu visita</p>
         </div>
       </div>
 
@@ -79,26 +64,24 @@ export default function LocationPage() {
                     <Car className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                     <h3 className="font-semibold mb-2">En coche</h3>
                     <p className="text-sm text-gray-700">
-                      Aparcamiento para visitantes disponible en el Lote C
-                      (límite de 2 horas) y Lote D (todo el día). Se requieren
-                      permisos de aparcamiento.
+                      Aparcamiento para visitantes disponible en el Lote C (límite de 2 horas) y
+                      Lote D (todo el día). Se requieren permisos de aparcamiento.
                     </p>
                   </div>
                   <div className="text-center">
                     <Bus className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                     <h3 className="font-semibold mb-2">Transporte público</h3>
                     <p className="text-sm text-gray-700">
-                      Las rutas de autobús 15, 23 y 42 paran en el Centro
-                      Universitario. La biblioteca está a 5 minutos a pie de la
-                      parada de autobús.
+                      Las rutas de autobús 15, 23 y 42 paran en el Centro Universitario. La
+                      biblioteca está a 5 minutos a pie de la parada de autobús.
                     </p>
                   </div>
                   <div className="text-center">
                     <Bike className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                     <h3 className="font-semibold mb-2">Bicicleta y a pie</h3>
                     <p className="text-sm text-gray-700">
-                      Aparcabicis disponibles fuera del Edificio de Física. El
-                      campus es peatonal con senderos accesibles.
+                      Aparcabicis disponibles fuera del Edificio de Física. El campus es peatonal
+                      con senderos accesibles.
                     </p>
                   </div>
                 </div>
@@ -179,9 +162,8 @@ export default function LocationPage() {
                 </div>
                 <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    <strong>Horarios festivos:</strong> Horario reducido durante
-                    las vacaciones universitarias. Consulte nuestro sitio web
-                    para conocer los horarios actuales.
+                    <strong>Horarios festivos:</strong> Horario reducido durante las vacaciones
+                    universitarias. Consulte nuestro sitio web para conocer los horarios actuales.
                   </p>
                 </div>
               </CardContent>
@@ -190,9 +172,7 @@ export default function LocationPage() {
             {/* Contact */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">
-                  Información de contacto
-                </CardTitle>
+                <CardTitle className="text-lg">Información de contacto</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center">
@@ -205,9 +185,7 @@ export default function LocationPage() {
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-3 text-gray-500" />
                   <div>
-                    <p className="font-medium">
-                      library@physics.university.edu
-                    </p>
+                    <p className="font-medium">library@physics.university.edu</p>
                     <p className="text-sm text-gray-600">Consultas generales</p>
                   </div>
                 </div>
@@ -217,9 +195,7 @@ export default function LocationPage() {
             {/* Accessibility */}
             <Card className="bg-green-50 border-green-200">
               <CardHeader>
-                <CardTitle className="text-lg text-green-900">
-                  Accesibilidad
-                </CardTitle>
+                <CardTitle className="text-lg text-green-900">Accesibilidad</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-green-800">
@@ -236,9 +212,7 @@ export default function LocationPage() {
             {/* Emergency */}
             <Card className="bg-red-50 border-red-200">
               <CardHeader>
-                <CardTitle className="text-lg text-red-900">
-                  Información de emergencia
-                </CardTitle>
+                <CardTitle className="text-lg text-red-900">Información de emergencia</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm text-red-800">
@@ -249,8 +223,8 @@ export default function LocationPage() {
                     <strong>Emergencia:</strong> 911
                   </p>
                   <p>
-                    <strong>Fuera de horario:</strong> Utilice los teléfonos de
-                    emergencia ubicados en todo el edificio
+                    <strong>Fuera de horario:</strong> Utilice los teléfonos de emergencia ubicados
+                    en todo el edificio
                   </p>
                 </div>
               </CardContent>

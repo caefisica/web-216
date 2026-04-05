@@ -3,21 +3,16 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, User } from "lucide-react";
-import type { BookWithRelations } from "../types/book-types";
+import type { BookDetailed } from "@/src/features/books/types";
 
 interface BookHeaderProps {
-  book: BookWithRelations;
+  book: BookDetailed;
   canEdit: boolean;
   isEditing: boolean;
   onToggleEditing: () => void;
 }
 
-export function BookHeader({
-  book,
-  canEdit,
-  isEditing,
-  onToggleEditing,
-}: BookHeaderProps) {
+export function BookHeader({ book, canEdit, isEditing, onToggleEditing }: BookHeaderProps) {
   return (
     <div className="flex justify-between items-start mb-6">
       <div className="flex-1">

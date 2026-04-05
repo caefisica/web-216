@@ -8,11 +8,7 @@ interface AnimatedCounterProps {
   className?: string;
 }
 
-export function AnimatedCounter({
-  value,
-  duration = 1000,
-  className = "",
-}: AnimatedCounterProps) {
+export function AnimatedCounter({ value, duration = 1000, className = "" }: AnimatedCounterProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -34,9 +30,7 @@ export function AnimatedCounter({
       // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
 
-      const currentValue = Math.floor(
-        startValue + (value - startValue) * easeOutQuart,
-      );
+      const currentValue = Math.floor(startValue + (value - startValue) * easeOutQuart);
       setDisplayValue(currentValue);
 
       if (progress < 1) {

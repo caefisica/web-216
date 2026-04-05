@@ -1,10 +1,9 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/auth/auth-provider";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +15,6 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,16 +22,25 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      const { error } = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
       toast({
         title: "¡Bienvenido de vuelta!",
         description: "Has iniciado sesión correctamente.",
       });
+
       router.push("/");
-    } catch (error: any) {
+      router.refresh(); // Ensure session state is updated
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error al iniciar sesión.";
       toast({
         title: "Error",
-        description: error.message || "Error al iniciar sesión.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -57,6 +64,7 @@ export default function SignInPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                placeholder="tu@email.com"
               />
             </div>
             <div>
