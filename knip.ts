@@ -1,7 +1,12 @@
 import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
-  entry: ["src/app/layout.tsx", "src/app/page.tsx", "src/lib/db/sync.ts", "src/lib/db/schema/index.ts"],
+  entry: [
+    "src/app/layout.tsx",
+    "src/app/page.tsx",
+    "src/lib/db/sync.ts",
+    "src/lib/db/schema/index.ts",
+  ],
   project: ["src/**/*.{ts,tsx}"],
   ignore: ["src/db/migrations/**/*"],
   ignoreDependencies: [
