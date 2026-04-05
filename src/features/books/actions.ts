@@ -281,7 +281,7 @@ export const toggleHeart = authenticatedAction(BookIdSchema, async ({ bookId }, 
  * Creates a borrow request for a book.
  */
 export const createBorrowRequest = authenticatedAction(
-  z.object({ bookId: z.string().uuid(), note: z.string().optional() }),
+  z.object({ bookId: z.uuid(), note: z.string().optional() }),
   async ({ bookId, note }, session) => {
     await db.insert(borrowRequests).values({
       id: crypto.randomUUID(),
@@ -325,7 +325,7 @@ export const uploadBookImage = protectedAction(
  * Deletes a book image from both the database and S3.
  */
 export const deleteBookImage = protectedAction(
-  z.object({ imageId: z.string().uuid(), bookId: z.string().uuid() }),
+  z.object({ imageId: z.uuid(), bookId: z.uuid() }),
   ["librarian", "admin"],
   async ({ imageId }) => {
     const [img] = await db.select().from(bookImages).where(eq(bookImages.id, imageId)).limit(1);
@@ -350,7 +350,7 @@ export const deleteBookImage = protectedAction(
  * Sets an image as the cover for a book.
  */
 export const setCoverImage = protectedAction(
-  z.object({ imageId: z.string().uuid(), bookId: z.string().uuid(), isExisting: z.boolean() }),
+  z.object({ imageId: z.uuid(), bookId: z.uuid(), isExisting: z.boolean() }),
   ["librarian", "admin"],
   async ({ imageId, bookId }) => {
     await db.update(bookImages).set({ isCover: false }).where(eq(bookImages.bookId, bookId));
@@ -372,8 +372,8 @@ export const setCoverImage = protectedAction(
  */
 export const addBookImage = protectedAction(
   z.object({
-    bookId: z.string().uuid(),
-    imageUrl: z.string().url(),
+    bookId: z.uuid(),
+    imageUrl: z.url(),
     isCover: z.boolean(),
     displayOrder: z.number(),
   }),
