@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { getBorrowingHistory } from "@/lib/actions/admin";
-import { Clock, BookOpen, TrendingUp, Eye, EyeOff, Loader2 } from "lucide-react";
+import { getBorrowingHistory } from "../actions";
+import { Clock, BookOpen, TrendingUp, Loader2 } from "lucide-react";
 
 interface TimelineEvent {
   id: string;
   type: "borrow" | "return" | "request";
   timestamp: string;
-  book_title: string;
-  user_name?: string;
-  user_initials?: string;
+  bookTitle: string;
+  userName?: string;
+  userInitials?: string;
   status: string;
   anonymized?: boolean;
 }
@@ -24,16 +24,11 @@ export function BorrowingTimeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAnonymized, setShowAnonymized] = useState(false);
-  const [publicView, setPublicView] = useState(false);
 
-  useEffect(() => {
-    fetchTimelineEvents();
-  }, [showAnonymized]);
-
-  const fetchTimelineEvents = async () => {
+  const fetchTimelineEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getBorrowingHistory(50);
+      const data = await getBorrowingHistory({ limit: 50 });
 
       const timelineEvents: TimelineEvent[] = [];
 
@@ -51,37 +46,37 @@ export function BorrowingTimeline() {
         timelineEvents.push({
           id: `${request.id}-request`,
           type: "request",
-          timestamp: request.request_date!,
-          book_title: request.book?.title || "Unknown Book",
-          user_name: userName,
-          user_initials: userInitials,
+          timestamp: request.requestDate!.toISOString(),
+          bookTitle: request.book?.title || "Libro desconocido",
+          userName,
+          userInitials,
           status: request.status,
           anonymized: showAnonymized,
         });
 
         // Approval/Borrow event
-        if (request.approved_date && request.status !== "rejected") {
+        if (request.approvedDate && request.status !== "rejected") {
           timelineEvents.push({
             id: `${request.id}-borrow`,
             type: "borrow",
-            timestamp: request.approved_date,
-            book_title: request.book?.title || "Unknown Book",
-            user_name: userName,
-            user_initials: userInitials,
+            timestamp: request.approvedDate.toISOString(),
+            bookTitle: request.book?.title || "Libro desconocido",
+            userName,
+            userInitials,
             status: request.status,
             anonymized: showAnonymized,
           });
         }
 
         // Return event
-        if (request.returned_date) {
+        if (request.returnDate) {
           timelineEvents.push({
             id: `${request.id}-return`,
             type: "return",
-            timestamp: request.returned_date,
-            book_title: request.book?.title || "Unknown Book",
-            user_name: userName,
-            user_initials: userInitials,
+            timestamp: request.returnDate.toISOString(),
+            bookTitle: request.book?.title || "Libro desconocido",
+            userName,
+            userInitials,
             status: "returned",
             anonymized: showAnonymized,
           });
@@ -93,12 +88,16 @@ export function BorrowingTimeline() {
       );
 
       setEvents(timelineEvents);
-    } catch (error) {
-      console.error("Error fetching timeline events:", error);
+    } catch (err) {
+      console.error("Error fetching timeline events:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [showAnonymized]);
+
+  useEffect(() => {
+    fetchTimelineEvents();
+  }, [fetchTimelineEvents]);
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -124,22 +123,6 @@ export function BorrowingTimeline() {
         return "bg-purple-100 text-purple-800 border-purple-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getEventText = (event: TimelineEvent) => {
-    const userText = event.anonymized ? "Un usuario" : event.user_name || "Un usuario";
-    switch (event.type) {
-      case "request":
-        return event.status === "rejected"
-          ? `${userText} tuvo su solicitud de "${event.book_title}" rechazada`
-          : `${userText} solicitó "${event.book_title}"`;
-      case "borrow":
-        return `${userText} tomó prestado "${event.book_title}"`;
-      case "return":
-        return `${userText} devolvió "${event.book_title}"`;
-      default:
-        return `Actividad para "${event.book_title}"`;
     }
   };
 
@@ -175,10 +158,7 @@ export function BorrowingTimeline() {
             </div>
           </CardTitle>
         </CardHeader>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6">
+        <CardContent>
           {loading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -188,37 +168,43 @@ export function BorrowingTimeline() {
               <p>No hay actividad para mostrar</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {events.map((event, index) => (
-                <div key={event.id} className="flex items-start space-x-4">
-                  <div className="relative">
-                    <div
-                      className={`w-10 h-10 rounded-full border-2 flex items-center justify-center bg-white`}
-                    >
-                      {event.anonymized || publicView ? (
+                <div key={event.id} className="flex items-start space-x-4 relative">
+                  <div className="relative z-10">
+                    <div className="w-10 h-10 rounded-full border-2 flex items-center justify-center bg-white overflow-hidden">
+                      {event.anonymized ? (
                         getEventIcon(event.type)
                       ) : (
                         <Avatar className="w-8 h-8">
-                          <AvatarFallback className="text-xs">{event.user_initials}</AvatarFallback>
+                          <AvatarFallback className="text-xs bg-gray-100 font-bold">
+                            {event.userInitials}
+                          </AvatarFallback>
                         </Avatar>
                       )}
                     </div>
                     {index < events.length - 1 && (
-                      <div className="absolute top-10 left-1/2 w-0.5 h-6 bg-gray-200" />
+                      <div className="absolute top-10 left-1/2 w-px h-10 bg-gray-200 -z-10" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-900">{getEventText(event)}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getEventColor(event.type, event.status)}>
-                          {event.type}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          {formatTimestamp(event.timestamp)}
+                  <div className="flex-1 pt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {event.anonymized ? "Un usuario" : event.userName}
+                        <span className="font-normal text-gray-500 ml-1">
+                          {event.type === "request"
+                            ? "solicitó"
+                            : event.type === "borrow"
+                              ? "tomó prestado"
+                              : "devolvió"}
                         </span>
-                      </div>
+                        <span className="ml-1">&quot;{event.bookTitle}&quot;</span>
+                      </p>
+                      <Badge className={getEventColor(event.type, event.status)} variant="outline">
+                        {event.status}
+                      </Badge>
                     </div>
+                    <p className="text-xs text-gray-400">{formatTimestamp(event.timestamp)}</p>
                   </div>
                 </div>
               ))}

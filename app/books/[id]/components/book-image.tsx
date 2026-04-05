@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BookImageProps {
-  images?: Array<{ image_url: string; alt_text?: string; is_cover?: boolean }>;
+  images?: Array<{ imageUrl: string; altText?: string | null; isCover?: boolean }>;
   title?: string;
 }
 
@@ -24,17 +24,13 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
     );
   }
 
-  // Find cover image if available
-  const coverImageIndex = images.findIndex((img) => img.is_cover);
-  const initialIndex = coverImageIndex >= 0 ? coverImageIndex : 0;
-
   // If only one image, just show it
   if (images.length === 1) {
     return (
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border mb-6">
         <Image
-          src={images[0].image_url || "/placeholder.svg"}
-          alt={images[0].alt_text || title}
+          src={images[0].imageUrl || "/placeholder.svg"}
+          alt={images[0].altText || title}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 33vw"
@@ -49,8 +45,8 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
     <div className="space-y-2 mb-6">
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border">
         <Image
-          src={images[currentImageIndex].image_url || "/placeholder.svg"}
-          alt={images[currentImageIndex].alt_text || `${title} - Image ${currentImageIndex + 1}`}
+          src={images[currentImageIndex].imageUrl || "/placeholder.svg"}
+          alt={images[currentImageIndex].altText || `${title} - Image ${currentImageIndex + 1}`}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 33vw"
@@ -100,13 +96,13 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
             onClick={() => setCurrentImageIndex(index)}
           >
             <Image
-              src={image.image_url || "/placeholder.svg"}
-              alt={image.alt_text || `Thumbnail ${index + 1}`}
+              src={image.imageUrl || "/placeholder.svg"}
+              alt={image.altText || `Thumbnail ${index + 1}`}
               fill
               className="object-cover"
               sizes="48px"
             />
-            {image.is_cover && (
+            {image.isCover && (
               <div className="absolute bottom-0 left-0 right-0 bg-yellow-500 bg-opacity-80 text-white text-[8px] text-center">
                 Cover
               </div>

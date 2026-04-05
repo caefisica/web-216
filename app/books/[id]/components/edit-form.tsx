@@ -3,13 +3,12 @@
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
-import { Star, Upload, Trash2, X, Loader2, XCircle } from "lucide-react";
+import { Star, Upload, Trash2, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "@/hooks/use-toast";
 import type { BookFormData } from "../types/book-types";
 import { uploadBookImage, deleteBookImage } from "../actions";
 
@@ -26,16 +25,16 @@ interface UploadedImage {
 
 interface ExistingImage {
   id: string;
-  image_url: string;
-  is_cover: boolean;
-  alt_text?: string;
-  display_order: number;
+  imageUrl: string;
+  isCover: boolean;
+  altText?: string | null;
+  displayOrder: number | null;
 }
 
 interface EditFormProps {
   editForm: BookFormData;
   onFormChange: (field: keyof BookFormData, value: string) => void;
-  onSave: (uploadedImages: any[]) => void;
+  onSave: (uploadedImages: UploadedImage[]) => void;
   existingImages?: ExistingImage[];
   categories?: Array<{ id: string; name: string }>;
   selectedCategories?: string[];
@@ -101,7 +100,7 @@ export function EditForm({
               ),
             );
           }
-        } catch (error) {
+        } catch {
           setUploadedImages((prev) =>
             prev.map((img) =>
               img.id === imageId
@@ -112,7 +111,7 @@ export function EditForm({
         }
       }
     },
-    [existingImages.length, bookId],
+    [existingImages.length],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -186,11 +185,11 @@ export function EditForm({
             key={image.id}
             className="relative aspect-square border rounded-lg overflow-hidden group"
           >
-            <Image src={image.image_url} alt="Existing" fill className="object-cover" />
+            <Image src={image.imageUrl} alt="Existing" fill className="object-cover" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Button
                 size="sm"
-                variant={image.is_cover ? "default" : "secondary"}
+                variant={image.isCover ? "default" : "secondary"}
                 onClick={() => onSetCover?.(image.id, true)}
               >
                 <Star className="h-4 w-4" />
@@ -203,7 +202,7 @@ export function EditForm({
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-            {image.is_cover && (
+            {image.isCover && (
               <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-[10px] px-1.5 py-0.5 rounded">
                 Portada
               </div>
@@ -309,11 +308,18 @@ export function EditForm({
   );
 }
 
-function Badge({ children, variant, className, onClick }: any) {
+interface BadgeProps {
+  children: React.ReactNode;
+  variant?: "default" | "outline";
+  className?: string;
+  onClick?: () => void;
+}
+
+function Badge({ children, variant, className, onClick }: BadgeProps) {
   return (
     <div
       onClick={onClick}
-      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${variant === "default" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"} ${className}`}
+      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${variant === "default" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"} ${className || ""}`}
     >
       {children}
     </div>

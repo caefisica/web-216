@@ -1,10 +1,3 @@
-import type { Book } from "@/lib/types";
-
-export interface BookWithRelations extends Omit<Book, "category"> {
-  category?: { name: string };
-  hearts_count?: { count: number }[];
-}
-
 export interface BookFormData {
   title?: string;
   author?: string;
@@ -15,7 +8,7 @@ export interface BookFormData {
   status?: string;
   location?: string;
   description?: string;
-  category_id?: string;
+  categoryId?: string;
 }
 
 export interface BookInfoItemProps {

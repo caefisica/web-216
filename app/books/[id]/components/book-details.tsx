@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Hash, Building, Calendar, BookOpen, MapPin, FileText } from "lucide-react";
-import type { BookWithRelations, BookInfoItemProps } from "../types/book-types";
+import type { BookDetailed } from "@/src/features/books/types";
+import type { BookInfoItemProps } from "../types/book-types";
 
 function BookInfoItem({ icon: Icon, label, value, className }: BookInfoItemProps) {
   return (
@@ -15,7 +16,7 @@ function BookInfoItem({ icon: Icon, label, value, className }: BookInfoItemProps
 }
 
 interface BookDetailsProps {
-  book: BookWithRelations;
+  book: BookDetailed;
 }
 
 export function BookDetails({ book }: BookDetailsProps) {
@@ -43,11 +44,11 @@ export function BookDetails({ book }: BookDetailsProps) {
           {book.publisher && (
             <BookInfoItem icon={Building} label="Editorial" value={book.publisher} />
           )}
-          {book.publication_year && (
+          {book.publicationYear && (
             <BookInfoItem
               icon={Calendar}
               label="Año de publicación"
-              value={book.publication_year.toString()}
+              value={book.publicationYear.toString()}
             />
           )}
           {book.pages && (

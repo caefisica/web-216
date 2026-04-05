@@ -36,10 +36,11 @@ export default function SignUpPage() {
         description: "Has creado tu cuenta correctamente. Ahora puedes iniciar sesión.",
       });
       router.push("/auth/signin");
-    } catch (error: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error al crear la cuenta.";
       toast({
         title: "Error",
-        description: error.message || "Error al crear la cuenta.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

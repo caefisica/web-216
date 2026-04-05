@@ -3,10 +3,10 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { books, bookImages, bookCategories } from "@/lib/db/schema";
-import { moveFile, deleteFile, getFileUrl, bucketName, uploadFile } from "@/lib/s3";
+import { moveFile, deleteFile, getFileUrl, uploadFile } from "@/lib/s3";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export async function uploadBookImage(formData: FormData) {
   const session = await auth.api.getSession({
@@ -43,12 +43,12 @@ interface SaveBookData {
     author: string;
     isbn?: string;
     publisher?: string;
-    publication_year?: number;
+    publicationYear?: number;
     pages?: number;
     description?: string;
     status: string;
     location?: string;
-    category_id?: string;
+    categoryId?: string;
   };
   uploadedImages: Array<{
     id: string;

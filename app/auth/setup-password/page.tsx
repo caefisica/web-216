@@ -90,9 +90,10 @@ export default function SetupPasswordPage() {
       setTimeout(() => {
         router.push("/auth/signin");
       }, 2000);
-    } catch (error: any) {
-      console.error("Error setting up password:", error);
-      setError(error.message || "Error al configurar la contraseña");
+    } catch (err: unknown) {
+      console.error("Error setting up password:", err);
+      const errorMessage = err instanceof Error ? err.message : "Error al configurar la contraseña";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

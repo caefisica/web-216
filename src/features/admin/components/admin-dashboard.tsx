@@ -1,0 +1,261 @@
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
+import { AdminBookCard } from "./admin-book-card";
+import { AdminStats } from "./admin-stats";
+import { UserManagement } from "./user-management";
+import { BorrowingTimeline } from "./borrowing-timeline";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Plus,
+  BookOpen,
+  Clock,
+  UserCog,
+  Activity,
+  BarChart3,
+  Search,
+  Filter,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { getBooks, deleteBook } from "../../books/actions";
+import { getPendingBorrowRequests, updateBorrowStatus, getAdminStats } from "../actions";
+import type { BookDetailed } from "../../books/types";
+import type { AdminStats as AdminStatsType, PendingRequest } from "../types";
+
+interface AdminDashboardProps {
+  initialBooks: BookDetailed[];
+  initialPendingRequests: PendingRequest[];
+  initialStats: AdminStatsType;
+}
+
+export function AdminDashboard({
+  initialBooks,
+  initialPendingRequests,
+  initialStats,
+}: AdminDashboardProps) {
+  const [books, setBooks] = useState<BookDetailed[]>(initialBooks);
+  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>(initialPendingRequests);
+  const [, setStats] = useState<AdminStatsType>(initialStats);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const refreshBooks = useCallback(async () => {
+    try {
+      const filtered = await getBooks({
+        search: searchQuery,
+      });
+      setBooks(filtered);
+    } catch (error) {
+      console.error("Error refreshing books:", error);
+    }
+  }, [searchQuery]);
+
+  const handleDeleteBook = async (bookId: string) => {
+    try {
+      await deleteBook({ bookId });
+      toast({ title: "Libro eliminado", description: "El libro ha sido eliminado del sistema." });
+      refreshBooks();
+      setStats(await getAdminStats());
+    } catch (error) {
+      console.error("Delete book failed:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el libro.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRequestAction = async (requestId: string, action: "approved" | "rejected") => {
+    try {
+      await updateBorrowStatus({ requestId, status: action });
+      toast({
+        title: action === "approved" ? "Aprobado" : "Rechazado",
+        description: `Solicitud de préstamo ${action === "approved" ? "aprobada" : "rechazada"}.`,
+      });
+      setPendingRequests(await getPendingBorrowRequests());
+      setStats(await getAdminStats());
+      refreshBooks();
+    } catch (error) {
+      console.error("Request action failed:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo procesar la solicitud.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    // Optional: add auto-refresh or other mount logic here if needed
+  }, []);
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-6">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">
+            Gestión de Biblioteca
+          </h1>
+          <p className="text-gray-500 mt-1 font-medium">Panel de administración v2.0</p>
+        </div>
+        <Button
+          asChild
+          className="shadow-lg hover:shadow-xl transition-all duration-200 h-11 px-6 text-sm font-semibold"
+        >
+          <Link href="/admin/books/create">
+            <Plus className="h-5 w-5 mr-1" /> Nuevo Libro
+          </Link>
+        </Button>
+      </div>
+
+      <Tabs defaultValue="books" className="space-y-8">
+        <div className="flex flex-col xl:flex-row justify-between gap-6 overflow-x-auto pb-2 scrollbar-hide">
+          <TabsList className="h-12 p-1.5 bg-gray-100/80 rounded-2xl border">
+            {[
+              { value: "books", label: "Colección", icon: <BookOpen className="h-4 w-4" /> },
+              {
+                value: "requests",
+                label: `Solicitudes (${pendingRequests.length})`,
+                icon: <Clock className="h-4 w-4" />,
+              },
+              { value: "users", label: "Usuarios", icon: <UserCog className="h-4 w-4" /> },
+              { value: "history", label: "Actividad", icon: <Activity className="h-4 w-4" /> },
+              {
+                value: "analytics",
+                label: "Estadísticas",
+                icon: <BarChart3 className="h-4 w-4" />,
+              },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 transition-all font-semibold text-xs"
+              >
+                {tab.icon}
+                <span className="ml-2 hidden sm:inline">{tab.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <div className="flex gap-4 min-w-[320px]">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Filtro rápido..."
+                className="h-12 pl-10 rounded-2xl bg-white border-gray-100 shadow-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && refreshBooks()}
+              />
+            </div>
+            <Button
+              variant="secondary"
+              className="h-12 px-5 rounded-2xl border hover:bg-white transition-colors"
+              onClick={refreshBooks}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <TabsContent value="books" className="space-y-6 focus-visible:outline-none">
+          {books.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50/50 rounded-3xl border border-dashed">
+              <Filter className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-500 font-medium">No se encontraron libros en esta vista.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+              {books.map((book) => (
+                <AdminBookCard
+                  key={book.id}
+                  book={book}
+                  onDelete={() => handleDeleteBook(book.id)}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="requests" className="focus-visible:outline-none">
+          <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b p-6">
+              <CardTitle className="text-xl font-bold flex items-center gap-2">
+                <Clock className="h-6 w-6 text-orange-500" />
+                Pendientes de Aprobación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {pendingRequests.length === 0 ? (
+                <div className="py-20 text-center text-gray-500 font-medium italic">
+                  Todo al día. No hay solicitudes pendientes.
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {pendingRequests.map((req) => (
+                    <div
+                      key={req.id}
+                      className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 hover:bg-gray-50/30 transition-colors"
+                    >
+                      <div className="space-y-1.5">
+                        <h4 className="font-bold text-gray-900 text-lg leading-tight">
+                          {req.book?.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 flex items-center gap-2 font-medium">
+                          <span className="text-blue-600">@{req.user?.name}</span> •{" "}
+                          {req.user?.email}
+                        </p>
+                        <p className="text-xs text-gray-400 font-medium">
+                          Solicitado el{" "}
+                          {new Date(req.requestDate).toLocaleDateString("es-ES", {
+                            day: "numeric",
+                            month: "long",
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                          size="lg"
+                          className="flex-1 sm:flex-none h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold"
+                          onClick={() => handleRequestAction(req.id, "approved")}
+                        >
+                          <CheckCircle2 className="h-5 w-5 mr-2" /> Aprobar
+                        </Button>
+                        <Button
+                          size="lg"
+                          variant="ghost"
+                          className="flex-1 sm:flex-none h-11 px-6 rounded-xl border-gray-100 font-bold text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => handleRequestAction(req.id, "rejected")}
+                        >
+                          <XCircle className="h-5 w-5 mr-2" /> Rechazar
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="users" className="focus-visible:outline-none">
+          <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="history" className="focus-visible:outline-none">
+          <BorrowingTimeline />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="focus-visible:outline-none">
+          <AdminStats />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

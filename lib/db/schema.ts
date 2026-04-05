@@ -22,9 +22,11 @@ export const user = pgTable("user", {
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
   // Custom Domain Columns
-  role: text("role").default("user").notNull(), // 'user', 'librarian', 'admin'
-  totalDonations: numeric("total_donations").default("0"),
+  role: text("role").default("user").notNull(), // 'user', 'librarian', 'admin', 'suspended'
+  totalDonations: numeric("total_donations").default("0").notNull(),
 });
+
+export type Role = "user" | "librarian" | "admin" | "suspended";
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -62,8 +64,8 @@ export const verification = pgTable("verification", {
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
 });
 
 // --- DOMAIN TABLES ---
@@ -170,7 +172,7 @@ export const bookImages = pgTable("book_images", {
   imageUrl: text("image_url").notNull(),
   isCover: boolean("is_cover").default(false).notNull(),
   altText: text("alt_text"),
-  displayOrder: integer("display_order").default(0),
+  displayOrder: integer("display_order").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

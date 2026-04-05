@@ -6,8 +6,14 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { getCategories, createBook, uploadImage, addBookImage } from "@/lib/actions/books";
-import type { Category } from "@/lib/types";
+import {
+  getCategories,
+  createBook,
+  uploadBookImage,
+  addBookImage,
+} from "@/src/features/books/actions";
+import type { Category } from "@/src/features/books/types";
+import type { User } from "@/src/features/users/types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { X, Loader2, Save, Star, Upload, Trash2 } from "lucide-react";
+import { Loader2, Save, Star, Upload, Trash2 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
 interface ImageUpload {
@@ -43,7 +49,6 @@ export default function NewBookPage() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [imageUploads, setImageUploads] = useState<ImageUpload[]>([]);
   const [formData, setFormData] = useState({
@@ -51,7 +56,7 @@ export default function NewBookPage() {
     author: "",
     isbn: "",
     publisher: "",
-    publication_year: "",
+    publicationYear: "",
     pages: "",
     description: "",
     status: "available",
@@ -59,14 +64,14 @@ export default function NewBookPage() {
   });
 
   useEffect(() => {
-    const userRole = (user as any)?.role;
+    const userRole = (user as unknown as User)?.role;
     if (!authLoading && (!user || (userRole !== "librarian" && userRole !== "admin"))) {
       router.push("/");
     }
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    const userRole = (user as any)?.role;
+    const userRole = (user as unknown as User)?.role;
     if (user && (userRole === "librarian" || userRole === "admin")) {
       fetchCategories();
     }
@@ -76,15 +81,13 @@ export default function NewBookPage() {
     try {
       const data = await getCategories();
       setCategories(data || []);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
       toast({
         title: "Error",
         description: "No se pudieron cargar las categorías.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -174,21 +177,18 @@ export default function NewBookPage() {
 
     try {
       // 1. Create the book first to get an ID
-      const bookResult = await createBook(
-        {
-          title: formData.title,
-          author: formData.author,
-          isbn: formData.isbn,
-          publisher: formData.publisher,
-          publication_year: formData.publication_year,
-          pages: formData.pages,
-          description: formData.description,
-          status: formData.status,
-          location: formData.location,
-        },
-        [], // No images yet
-        selectedCategories,
-      );
+      const bookResult = await createBook({
+        title: formData.title,
+        author: formData.author,
+        isbn: formData.isbn,
+        publisher: formData.publisher,
+        publicationYear: formData.publicationYear ? Number(formData.publicationYear) : undefined,
+        pages: formData.pages ? Number(formData.pages) : undefined,
+        description: formData.description,
+        status: formData.status,
+        location: formData.location,
+        categoryId: selectedCategories[0] || undefined, // Simple mapping for now
+      });
 
       if (!bookResult.success || !bookResult.id) {
         throw new Error("Error creating book");
@@ -202,9 +202,14 @@ export default function NewBookPage() {
         const uploadFormData = new FormData();
         uploadFormData.append("file", imgUpload.file);
 
-        const { url } = await uploadImage(uploadFormData);
+        const { url } = await uploadBookImage(uploadFormData);
 
-        await addBookImage(bookId, url, imgUpload.isCover, i);
+        await addBookImage({
+          bookId,
+          imageUrl: url!,
+          isCover: imgUpload.isCover,
+          displayOrder: i,
+        });
       }
 
       toast({
@@ -213,8 +218,8 @@ export default function NewBookPage() {
       });
       router.push("/");
       router.refresh();
-    } catch (error) {
-      console.error("Error adding book:", error);
+    } catch (err) {
+      console.error("Error adding book:", err);
       toast({
         title: "Error",
         description: "Error al añadir el libro. Por favor, inténtalo de nuevo.",
@@ -236,124 +241,132 @@ export default function NewBookPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Añadir nuevo libro</h1>
-            <p className="text-lg text-gray-600">
-              Añade un nuevo libro a la colección de la biblioteca
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
+              Añadir nuevo libro
+            </h1>
+            <p className="text-lg text-gray-500 font-medium">
+              Expande la colección bibliográfica de la facultad
             </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-10">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div>
-              <Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="space-y-8">
+              <Card className="rounded-2xl shadow-sm border-gray-100">
                 <CardHeader>
-                  <CardTitle className="text-lg">Imágenes del libro</CardTitle>
+                  <CardTitle className="text-lg font-bold">Imágenes del libro</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div
                     {...getRootProps()}
-                    className={`border-2 border-dashed rounded-md flex flex-col items-center justify-center p-6 cursor-pointer transition-colors ${
+                    className={`border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-8 cursor-pointer transition-all ${
                       isDragActive
-                        ? "border-blue-400 bg-blue-50"
-                        : "border-gray-300 hover:border-blue-400"
+                        ? "border-blue-400 bg-blue-50/50 scale-[1.02]"
+                        : "border-gray-200 hover:border-blue-400 hover:bg-gray-50/50"
                     }`}
                   >
                     <input {...getInputProps()} />
-                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                    <p className="text-sm text-center text-gray-600 mb-1">
-                      {isDragActive
-                        ? "Suelta las imágenes aquí"
-                        : "Arrastra y suelta imágenes aquí"}
+                    <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
+                      <Upload className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">
+                      {isDragActive ? "Suelta ahora" : "Subir imágenes"}
                     </p>
-                    <p className="text-xs text-center text-gray-500">
-                      o haz clic para seleccionar archivos
+                    <p className="text-xs text-center text-gray-500 font-medium leading-relaxed">
+                      Arrastra y suelta o haz clic para seleccionar
+                      <br />
+                      (JPEG, PNG, WebP)
                     </p>
                   </div>
 
                   {imageUploads.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">
-                        Imágenes añadidas ({imageUploads.length})
+                    <div className="space-y-4">
+                      <h4 className="font-bold text-sm text-gray-900">
+                        Previsualización ({imageUploads.length})
                       </h4>
-                      {imageUploads.map((imageUpload, index) => (
-                        <div
-                          key={imageUpload.id}
-                          className="relative border rounded-lg p-3 space-y-2"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="relative w-16 h-20 flex-shrink-0">
-                              <Image
-                                src={imageUpload.preview || "/placeholder.svg"}
-                                alt={`Imagen ${index + 1}`}
-                                fill
-                                className="object-cover rounded"
-                              />
-                            </div>
-                            <div className="flex-1 space-y-2">
-                              <Input
-                                placeholder="Texto alternativo (opcional)"
-                                value={imageUpload.altText}
-                                onChange={(e) => updateImageAltText(imageUpload.id, e.target.value)}
-                                className="text-xs"
-                              />
-                              <div className="flex gap-2">
-                                {!imageUpload.isCover && (
+                      <div className="space-y-3">
+                        {imageUploads.map((imageUpload, index) => (
+                          <div
+                            key={imageUpload.id}
+                            className="relative border border-gray-100 rounded-2xl p-4 transition-all hover:shadow-md bg-white group"
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="relative w-20 h-24 flex-shrink-0 bg-gray-50 rounded-xl overflow-hidden border">
+                                <Image
+                                  src={imageUpload.preview || "/placeholder.svg"}
+                                  alt={`Imagen ${index + 1}`}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 space-y-3">
+                                <Input
+                                  placeholder="Alt text"
+                                  value={imageUpload.altText}
+                                  onChange={(e) =>
+                                    updateImageAltText(imageUpload.id, e.target.value)
+                                  }
+                                  className="h-8 text-xs rounded-lg border-gray-100"
+                                />
+                                <div className="flex gap-2">
+                                  {!imageUpload.isCover && (
+                                    <Button
+                                      type="button"
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => setCoverImage(imageUpload.id)}
+                                      className="h-7 text-[10px] font-bold px-3 rounded-lg"
+                                    >
+                                      <Star className="h-3 w-3 mr-1" />
+                                      Portada
+                                    </Button>
+                                  )}
                                   <Button
                                     type="button"
-                                    variant="outline"
+                                    variant="ghost"
                                     size="sm"
-                                    onClick={() => setCoverImage(imageUpload.id)}
-                                    className="text-xs"
+                                    onClick={() => removeImage(imageUpload.id)}
+                                    className="h-7 text-[10px] font-bold px-3 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50"
                                   >
-                                    <Star className="h-3 w-3 mr-1" />
-                                    Portada
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    Quitar
                                   </Button>
-                                )}
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeImage(imageUpload.id)}
-                                  className="text-xs"
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  Eliminar
-                                </Button>
+                                </div>
                               </div>
                             </div>
+                            {imageUpload.isCover && (
+                              <Badge className="absolute -top-2 -right-2 bg-yellow-500 hover:bg-yellow-600 shadow-sm border-none font-bold text-[10px]">
+                                PORTADA
+                              </Badge>
+                            )}
                           </div>
-                          {imageUpload.isCover && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Star className="h-3 w-3 mr-1" />
-                              Imagen de portada
-                            </Badge>
-                          )}
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
             </div>
 
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Información del libro</CardTitle>
+            <div className="lg:col-span-2 space-y-8">
+              <Card className="rounded-2xl shadow-sm border-gray-100 overflow-hidden">
+                <CardHeader className="bg-gray-50/50 border-b">
+                  <CardTitle className="text-lg font-bold">Información del libro</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900">Información básica</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent className="p-8 space-y-8">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="title" className="text-sm font-medium">
-                          Título <span className="text-red-500">*</span>
+                        <Label
+                          htmlFor="title"
+                          className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                        >
+                          Título del libro <span className="text-red-500 font-normal">*</span>
                         </Label>
                         <Input
                           id="title"
@@ -361,12 +374,17 @@ export default function NewBookPage() {
                           value={formData.title}
                           onChange={handleInputChange}
                           required
+                          className="h-12 rounded-xl border-gray-100 focus:ring-blue-500/20"
+                          placeholder="Ej: Mecánica Cuántica"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="author" className="text-sm font-medium">
-                          Autor <span className="text-red-500">*</span>
+                        <Label
+                          htmlFor="author"
+                          className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                        >
+                          Autor(es) <span className="text-red-500 font-normal">*</span>
                         </Label>
                         <Input
                           id="author"
@@ -374,13 +392,18 @@ export default function NewBookPage() {
                           value={formData.author}
                           onChange={handleInputChange}
                           required
+                          className="h-12 rounded-xl border-gray-100 focus:ring-blue-500/20"
+                          placeholder="Ej: Richard Feynman"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="isbn" className="text-sm font-medium">
+                        <Label
+                          htmlFor="isbn"
+                          className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                        >
                           ISBN
                         </Label>
                         <Input
@@ -388,11 +411,16 @@ export default function NewBookPage() {
                           name="isbn"
                           value={formData.isbn}
                           onChange={handleInputChange}
+                          className="h-12 rounded-xl border-gray-100 focus:ring-blue-500/20"
+                          placeholder="978-XXXXXXXXXX"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="publisher" className="text-sm font-medium">
+                        <Label
+                          htmlFor="publisher"
+                          className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                        >
                           Editorial
                         </Label>
                         <Input
@@ -400,27 +428,37 @@ export default function NewBookPage() {
                           name="publisher"
                           value={formData.publisher}
                           onChange={handleInputChange}
+                          className="h-12 rounded-xl border-gray-100 focus:ring-blue-500/20"
+                          placeholder="Ej: Pearson"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="publication_year" className="text-sm font-medium">
-                          Año
+                        <Label
+                          htmlFor="publicationYear"
+                          className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                        >
+                          Año de Pub.
                         </Label>
                         <Input
-                          id="publication_year"
-                          name="publication_year"
+                          id="publicationYear"
+                          name="publicationYear"
                           type="number"
-                          value={formData.publication_year}
+                          value={formData.publicationYear}
                           onChange={handleInputChange}
+                          className="h-12 rounded-xl border-gray-100 focus:ring-blue-500/20"
+                          placeholder="2024"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="pages" className="text-sm font-medium">
-                          Páginas
+                        <Label
+                          htmlFor="pages"
+                          className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                        >
+                          Nº Páginas
                         </Label>
                         <Input
                           id="pages"
@@ -428,26 +466,51 @@ export default function NewBookPage() {
                           type="number"
                           value={formData.pages}
                           onChange={handleInputChange}
+                          className="h-12 rounded-xl border-gray-100 focus:ring-blue-500/20"
+                          placeholder="450"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="location"
+                          className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                        >
+                          Ubicación Física
+                        </Label>
+                        <Input
+                          id="location"
+                          name="location"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          className="h-12 rounded-xl border-gray-100 focus:ring-blue-500/20"
+                          placeholder="Estante B-4"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <Separator />
+                  <Separator className="bg-gray-100" />
 
                   <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900">Categorías</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                      Categorías de estudio
+                    </Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {categories.map((category) => (
-                        <div key={category.id} className="flex items-center space-x-2">
+                        <div
+                          key={category.id}
+                          className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50/50 transition-all border border-transparent hover:border-gray-100"
+                        >
                           <Checkbox
                             id={`category-${category.id}`}
                             checked={selectedCategories.includes(category.id)}
                             onCheckedChange={() => handleCategoryToggle(category.id)}
+                            className="rounded-md h-5 w-5"
                           />
                           <Label
                             htmlFor={`category-${category.id}`}
-                            className="text-sm font-normal cursor-pointer"
+                            className="text-sm font-semibold text-gray-700 cursor-pointer select-none"
                           >
                             {category.name}
                           </Label>
@@ -456,74 +519,78 @@ export default function NewBookPage() {
                     </div>
                   </div>
 
-                  <Separator />
+                  <Separator className="bg-gray-100" />
 
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900">Ubicación y Estado</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="status" className="text-sm font-medium">
-                          Estado
-                        </Label>
-                        <Select
-                          value={formData.status}
-                          onValueChange={(value) =>
-                            setFormData((prev) => ({ ...prev, status: value }))
-                          }
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="status"
+                        className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                      >
+                        Estado Inicial
+                      </Label>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({ ...prev, status: value }))
+                        }
+                      >
+                        <SelectTrigger
+                          id="status"
+                          className="h-12 rounded-xl border-gray-100 bg-white"
                         >
-                          <SelectTrigger id="status">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="available">Disponible</SelectItem>
-                            <SelectItem value="borrowed">Prestado</SelectItem>
-                            <SelectItem value="maintenance">Mantenimiento</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="location" className="text-sm font-medium">
-                          Ubicación
-                        </Label>
-                        <Input
-                          id="location"
-                          name="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                        />
-                      </div>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="available">Disponible</SelectItem>
+                          <SelectItem value="borrowed">Prestado</SelectItem>
+                          <SelectItem value="maintenance">Mantenimiento</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm font-medium">
-                      Descripción
+                    <Label
+                      htmlFor="description"
+                      className="text-xs font-bold uppercase tracking-wider text-gray-500"
+                    >
+                      Resumen / Descripción
                     </Label>
                     <Textarea
                       id="description"
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      rows={5}
+                      rows={6}
+                      className="rounded-xl border-gray-100 focus:ring-blue-500/20 leading-relaxed"
+                      placeholder="Breve resumen del contenido del libro..."
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button type="button" variant="outline" asChild>
-                      <Link href="/">Cancelar</Link>
+                  <div className="flex justify-end gap-3 pt-6">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      asChild
+                      className="h-12 px-8 rounded-xl font-bold"
+                    >
+                      <Link href="/">Descartar</Link>
                     </Button>
-                    <Button type="submit" disabled={submitting}>
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="h-12 px-10 rounded-xl font-bold shadow-lg shadow-blue-600/20"
+                    >
                       {submitting ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Guardando...
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Creando...
                         </>
                       ) : (
                         <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Guardar libro
+                          <Save className="h-5 w-5 mr-2" />
+                          Registrar Libro
                         </>
                       )}
                     </Button>

@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
@@ -12,13 +11,13 @@ import {
   getCategories,
   updateBook,
   deleteBook,
-  uploadImage,
+  uploadBookImage,
   deleteBookImage,
-  updateBookCategories,
-  setBookCoverImage,
+  setCoverImage,
   addBookImage,
-} from "@/lib/actions/books";
-import type { Category, BookImage } from "@/lib/types";
+} from "@/src/features/books/actions";
+import type { Category, BookImage } from "@/src/features/books/types";
+import type { User } from "@/src/features/users/types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +42,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { X, Loader2, Save, AlertTriangle, Trash2, Star, Upload } from "lucide-react";
+import { X, Loader2, Save, Trash2, Star, Upload, ChevronLeft } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
 interface ImageUpload {
@@ -76,7 +72,7 @@ export default function EditBookPage() {
     author: "",
     isbn: "",
     publisher: "",
-    publication_year: "",
+    publicationYear: "",
     pages: "",
     description: "",
     status: "available",
@@ -84,33 +80,22 @@ export default function EditBookPage() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || (user.role !== "librarian" && user.role !== "admin"))) {
+    const userRole = (user as unknown as User)?.role;
+    if (!authLoading && (!user || (userRole !== "librarian" && userRole !== "admin"))) {
       router.push("/");
     }
   }, [user, authLoading, router]);
-
-  useEffect(() => {
-    if (user && (user.role === "librarian" || user.role === "admin")) {
-      fetchCategories();
-      fetchBookDetails();
-    }
-  }, [user, bookId]);
 
   const fetchCategories = async () => {
     try {
       const data = await getCategories();
       setCategories(data || []);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las categorías.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      console.error("Error fetching categories:", err);
     }
   };
 
-  const fetchBookDetails = async () => {
+  const fetchBookDetails = useCallback(async () => {
     try {
       const bookData = await getBookById(bookId);
 
@@ -120,22 +105,21 @@ export default function EditBookPage() {
           author: bookData.author || "",
           isbn: bookData.isbn || "",
           publisher: bookData.publisher || "",
-          publication_year: bookData.publication_year?.toString() || "",
+          publicationYear: bookData.publicationYear?.toString() || "",
           pages: bookData.pages?.toString() || "",
           description: bookData.description || "",
           status: bookData.status || "available",
           location: bookData.location || "",
         });
 
-        // Set selected categories
-        const categoryIds = bookData.categories?.map((c: any) => c.id) || [];
-        setSelectedCategories(categoryIds);
+        // Set selected categories (assuming multi-category for the UI, but single for the action for now)
+        if (bookData.categoryId) {
+          setSelectedCategories([bookData.categoryId]);
+        }
 
         // Set existing images
         const images = bookData.images || [];
-        setExistingImages(
-          images.sort((a: BookImage, b: BookImage) => a.display_order - b.display_order),
-        );
+        setExistingImages(images.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)));
       }
     } catch (error) {
       console.error("Error fetching book details:", error);
@@ -147,7 +131,15 @@ export default function EditBookPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookId]);
+
+  useEffect(() => {
+    const userRole = (user as unknown as User)?.role;
+    if (user && (userRole === "librarian" || userRole === "admin")) {
+      fetchCategories();
+      fetchBookDetails();
+    }
+  }, [user, bookId, fetchBookDetails]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -161,12 +153,6 @@ export default function EditBookPage() {
             altText: "",
           };
           setNewImageUploads((prev) => [...prev, newImage]);
-        } else {
-          toast({
-            title: "Tipo de archivo inválido",
-            description: "Por favor, sube archivos de imagen (JPEG, PNG, etc.)",
-            variant: "destructive",
-          });
         }
       });
     },
@@ -187,21 +173,19 @@ export default function EditBookPage() {
   };
 
   const handleCategoryToggle = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
-    );
+    setSelectedCategories([categoryId]); // Keeping it simple: one category for now as per schema
   };
 
   const removeExistingImage = async (imageId: string) => {
     try {
-      await deleteBookImage(imageId);
+      await deleteBookImage({ imageId, bookId });
       setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
       toast({
         title: "Imagen eliminada",
         description: "La imagen ha sido eliminada correctamente.",
       });
-    } catch (error) {
-      console.error("Error deleting image:", error);
+    } catch (err) {
+      console.error("Error removing image:", err);
       toast({
         title: "Error",
         description: "No se pudo eliminar la imagen.",
@@ -214,24 +198,23 @@ export default function EditBookPage() {
     setNewImageUploads((prev) => prev.filter((img) => img.id !== imageId));
   };
 
-  const setCoverImage = async (imageId: string, isExisting: boolean) => {
+  const handleSetCoverImage = async (imageId: string, isExisting: boolean) => {
     try {
       if (isExisting) {
-        await setBookCoverImage(bookId, imageId);
-        setExistingImages((prev) => prev.map((img) => ({ ...img, is_cover: img.id === imageId })));
+        await setCoverImage({ imageId, bookId, isExisting: true });
+        setExistingImages((prev) => prev.map((img) => ({ ...img, isCover: img.id === imageId })));
+        setNewImageUploads((prev) => prev.map((img) => ({ ...img, isCover: false })));
       } else {
-        // Update new uploads
         setNewImageUploads((prev) => prev.map((img) => ({ ...img, isCover: img.id === imageId })));
-        // Also unset existing covers
-        setExistingImages((prev) => prev.map((img) => ({ ...img, is_cover: false })));
+        setExistingImages((prev) => prev.map((img) => ({ ...img, isCover: false })));
       }
 
       toast({
         title: "Portada actualizada",
         description: "La imagen de portada ha sido actualizada.",
       });
-    } catch (error) {
-      console.error("Error setting cover image:", error);
+    } catch (err) {
+      console.error("Error setting cover image:", err);
       toast({
         title: "Error",
         description: "No se pudo actualizar la imagen de portada.",
@@ -256,45 +239,48 @@ export default function EditBookPage() {
 
     try {
       // Update book record
-      await updateBook(bookId, {
+      await updateBook({
+        id: bookId,
         title: formData.title,
         author: formData.author,
         isbn: formData.isbn,
         publisher: formData.publisher,
-        publicationYear: formData.publication_year,
-        pages: formData.pages,
+        publicationYear: formData.publicationYear ? Number(formData.publicationYear) : undefined,
+        pages: formData.pages ? Number(formData.pages) : undefined,
         description: formData.description,
         status: formData.status,
         location: formData.location,
+        categoryId: selectedCategories[0] || undefined,
       });
 
-      // Add newly uploaded images to the database
+      // Add newly uploaded images
       for (let i = 0; i < newImageUploads.length; i++) {
         const imageUpload = newImageUploads[i];
         const uploadFormData = new FormData();
         uploadFormData.append("file", imageUpload.file);
 
-        const { url } = await uploadImage(uploadFormData);
+        const { url } = await uploadBookImage(uploadFormData);
 
-        await addBookImage(bookId, url, imageUpload.isCover, existingImages.length + i);
+        await addBookImage({
+          bookId,
+          imageUrl: url!,
+          isCover: imageUpload.isCover,
+          displayOrder: existingImages.length + i,
+        });
       }
-
-      // Update categories
-      await updateBookCategories(bookId, selectedCategories);
 
       toast({
         title: "Libro actualizado",
-        description: "El libro ha sido actualizado correctamente.",
+        description: "Los cambios se han guardado correctamente.",
       });
 
-      // Refresh the book details
       fetchBookDetails();
       setNewImageUploads([]);
-    } catch (error) {
-      console.error("Error updating book:", error);
+    } catch (err) {
+      console.error("Error updating book:", err);
       toast({
         title: "Error",
-        description: "No se pudo actualizar el libro. Por favor, inténtalo de nuevo.",
+        description: "No se pudo actualizar el libro.",
         variant: "destructive",
       });
     } finally {
@@ -304,521 +290,390 @@ export default function EditBookPage() {
 
   const handleDeleteBook = async () => {
     try {
-      await deleteBook(bookId);
-
-      toast({
-        title: "Libro eliminado",
-        description: "El libro ha sido eliminado correctamente de la biblioteca.",
-      });
-
+      await deleteBook({ bookId });
+      toast({ title: "Libro eliminado" });
       router.push("/");
-    } catch (error) {
-      console.error("Error deleting book:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el libro.",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteDialogOpen(false);
+    } catch (err) {
+      console.error("Error deleting book:", err);
+      toast({ title: "Error al eliminar", variant: "destructive" });
     }
   };
 
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="animate-pulse h-8 w-48 bg-gray-200 rounded mb-2"></div>
-            <div className="animate-pulse h-4 w-64 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="animate-pulse bg-white rounded-lg h-96"></div>
-            <div className="lg:col-span-2 animate-pulse bg-white rounded-lg h-96"></div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+        <p className="text-gray-500 font-medium">Cargando detalles del libro...</p>
       </div>
     );
   }
 
-  const allImages = [...existingImages, ...newImageUploads];
-  const hasCoverImage = allImages.some((img) => ("is_cover" in img ? img.is_cover : img.isCover));
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Page Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar libro</h1>
-            <p className="text-lg text-gray-600">
-              Actualizar la información del libro en la colección de la biblioteca
-            </p>
+    <div className="min-h-screen bg-gray-50/50 pb-20">
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-10 backdrop-blur-md bg-white/80">
+        <div className="container mx-auto px-6 py-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" asChild className="rounded-xl">
+                <Link href="/">
+                  <ChevronLeft className="h-5 w-5" />
+                </Link>
+              </Button>
+              <div>
+                <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight leading-none">
+                  Editar Libro
+                </h1>
+                <p className="text-sm text-gray-500 font-medium mt-1">{formData.title}</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-red-500 hover:text-red-600 hover:bg-red-50 font-bold rounded-xl"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="rounded-xl font-bold px-6 shadow-lg shadow-blue-600/20"
+              >
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Guardar Cambios
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Image Management */}
-            <div className="lg:order-1">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold">Imágenes del libro</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Existing Images */}
-                  {existingImages.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">
-                        Imágenes actuales ({existingImages.length})
-                      </h4>
-                      {existingImages.map((image) => (
-                        <div key={image.id} className="relative border rounded-lg p-3 space-y-2">
-                          <div className="flex items-start gap-3">
-                            <div className="relative w-16 h-20 flex-shrink-0">
-                              <Image
-                                src={image.image_url || "/placeholder.svg"}
-                                alt={image.alt_text || "Imagen del libro"}
-                                fill
-                                className="object-cover rounded"
-                              />
-                              {image.is_cover && (
-                                <div className="absolute -top-1 -right-1">
-                                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 space-y-2">
-                              <div className="flex gap-2">
-                                {!image.is_cover && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCoverImage(image.id, true)}
-                                    className="text-xs"
-                                  >
-                                    <Star className="h-3 w-3 mr-1" />
-                                    Portada
-                                  </Button>
-                                )}
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeExistingImage(image.id)}
-                                  className="text-xs"
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  Eliminar
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                          {image.is_cover && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Star className="h-3 w-3 mr-1" />
-                              Imagen de portada
-                            </Badge>
-                          )}
+      <div className="container mx-auto px-6 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <div className="space-y-8">
+            <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50/30">
+                <CardTitle className="text-lg font-bold">Galería de Imágenes</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  {existingImages.map((image) => (
+                    <div
+                      key={image.id}
+                      className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm ring-1 ring-black/5"
+                    >
+                      <Image
+                        src={image.imageUrl}
+                        alt="Book"
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity p-2">
+                        <Button
+                          size="sm"
+                          variant={image.isCover ? "secondary" : "ghost"}
+                          className="w-full text-[10px] h-8 rounded-lg font-bold"
+                          onClick={() => handleSetCoverImage(image.id, true)}
+                        >
+                          <Star
+                            className={`h-3 w-3 mr-1 ${image.isCover ? "fill-yellow-500 text-yellow-500" : ""}`}
+                          />
+                          {image.isCover ? "Portada" : "Usar Portada"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="w-full text-[10px] h-8 rounded-lg font-bold text-red-400 hover:text-red-500 hover:bg-white/10"
+                          onClick={() => removeExistingImage(image.id)}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Eliminar
+                        </Button>
+                      </div>
+                      {image.isCover && (
+                        <div className="absolute top-2 left-2 bg-yellow-500 text-[8px] font-black tracking-tighter text-white px-2 py-0.5 rounded-full shadow-sm">
+                          PORTADA
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-
-                  {/* New Image Upload Area */}
+                  ))}
                   <div
                     {...getRootProps()}
-                    className={`border-2 border-dashed rounded-md flex flex-col items-center justify-center p-6 cursor-pointer transition-colors ${
+                    className={`aspect-[3/4] border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-4 cursor-pointer transition-all ${
                       isDragActive
                         ? "border-blue-400 bg-blue-50"
-                        : "border-gray-300 hover:border-blue-400"
+                        : "border-gray-200 hover:border-blue-400 hover:bg-gray-50/50"
                     }`}
                   >
                     <input {...getInputProps()} />
-                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                    <p className="text-sm text-center text-gray-600 mb-1">
-                      {isDragActive ? "Suelta las imágenes aquí" : "Añadir más imágenes"}
-                    </p>
-                    <p className="text-xs text-center text-gray-500">
-                      Arrastra y suelta o haz clic
-                    </p>
+                    <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
+                      Añadir más
+                    </span>
                   </div>
+                </div>
 
-                  {/* New Images */}
-                  {newImageUploads.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">
-                        Nuevas imágenes ({newImageUploads.length})
-                      </h4>
-                      {newImageUploads.map((imageUpload) => (
+                {newImageUploads.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                      Nuevas por subir
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {newImageUploads.map((image) => (
                         <div
-                          key={imageUpload.id}
-                          className="relative border rounded-lg p-3 space-y-2 bg-blue-50"
+                          key={image.id}
+                          className="relative aspect-[3/4] rounded-2xl overflow-hidden border-2 border-blue-100 bg-blue-50/20"
                         >
-                          <div className="flex items-start gap-3">
-                            <div className="relative w-16 h-20 flex-shrink-0">
-                              <Image
-                                src={imageUpload.preview || "/placeholder.svg"}
-                                alt="Nueva imagen"
-                                fill
-                                className="object-cover rounded"
-                              />
-                              {imageUpload.isCover && (
-                                <div className="absolute -top-1 -right-1">
-                                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 space-y-2">
-                              <div className="flex gap-2">
-                                {!imageUpload.isCover && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCoverImage(imageUpload.id, false)}
-                                    className="text-xs"
-                                  >
-                                    <Star className="h-3 w-3 mr-1" />
-                                    Portada
-                                  </Button>
-                                )}
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeNewImage(imageUpload.id)}
-                                  className="text-xs"
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  Eliminar
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                          {imageUpload.isCover && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Star className="h-3 w-3 mr-1" />
-                              Nueva imagen de portada
-                            </Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {!hasCoverImage && allImages.length > 0 && (
-                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                      <p className="text-sm text-yellow-800">
-                        ⚠️ No hay imagen de portada seleccionada. Selecciona una imagen como
-                        portada.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Book Details */}
-            <div className="lg:col-span-2 lg:order-2">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-6">
-                  <CardTitle className="text-lg font-semibold">Información del libro</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  {/* Basic Information */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">Información básica</h3>
-                      <div className="h-px bg-gray-200 flex-1"></div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="title" className="text-sm font-medium text-gray-900">
-                          Título <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="title"
-                          name="title"
-                          value={formData.title}
-                          onChange={handleInputChange}
-                          placeholder="Ingresa el título del libro"
-                          required
-                          className="focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="author" className="text-sm font-medium text-gray-900">
-                          Autor <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="author"
-                          name="author"
-                          value={formData.author}
-                          onChange={handleInputChange}
-                          placeholder="Ingresa el nombre del autor"
-                          required
-                          className="focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="isbn" className="text-sm font-medium text-gray-900">
-                          ISBN
-                        </Label>
-                        <Input
-                          id="isbn"
-                          name="isbn"
-                          value={formData.isbn}
-                          onChange={handleInputChange}
-                          placeholder="Ingresa ISBN (opcional)"
-                          className="focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="publisher" className="text-sm font-medium text-gray-900">
-                          Editorial
-                        </Label>
-                        <Input
-                          id="publisher"
-                          name="publisher"
-                          value={formData.publisher}
-                          onChange={handleInputChange}
-                          placeholder="Ingresa el nombre de la editorial"
-                          className="focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="publication_year"
-                          className="text-sm font-medium text-gray-900"
-                        >
-                          Año de publicación
-                        </Label>
-                        <Input
-                          id="publication_year"
-                          name="publication_year"
-                          type="number"
-                          value={formData.publication_year}
-                          onChange={handleInputChange}
-                          placeholder="Ingresa el año"
-                          min="1000"
-                          max={new Date().getFullYear()}
-                          className="focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="pages" className="text-sm font-medium text-gray-900">
-                          Número de páginas
-                        </Label>
-                        <Input
-                          id="pages"
-                          name="pages"
-                          type="number"
-                          value={formData.pages}
-                          onChange={handleInputChange}
-                          placeholder="Ingresa el número de páginas"
-                          min="1"
-                          className="focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator className="my-8" />
-
-                  {/* Categories */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">Categorías</h3>
-                      <div className="h-px bg-gray-200 flex-1"></div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {categories.map((category) => (
-                        <div key={category.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`category-${category.id}`}
-                            checked={selectedCategories.includes(category.id)}
-                            onCheckedChange={() => handleCategoryToggle(category.id)}
+                          <Image
+                            src={image.preview}
+                            alt="Upload"
+                            fill
+                            className="object-cover opacity-60"
                           />
-                          <Label
-                            htmlFor={`category-${category.id}`}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {category.name}
-                          </Label>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="h-8 w-8 rounded-full shadow-lg"
+                              onClick={() => removeNewImage(image.id)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="text-[10px] h-6 rounded-md font-bold"
+                              onClick={() => handleSetCoverImage(image.id, false)}
+                            >
+                              {image.isCover ? "Portada" : "Hacer Portada"}
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
-                    {selectedCategories.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {selectedCategories.map((categoryId) => {
-                          const category = categories.find((c) => c.id === categoryId);
-                          return category ? (
-                            <Badge key={categoryId} variant="secondary">
-                              {category.name}
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-auto p-0 ml-2"
-                                onClick={() => handleCategoryToggle(categoryId)}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </Badge>
-                          ) : null;
-                        })}
-                      </div>
-                    )}
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-                  <Separator className="my-8" />
-
-                  {/* Library Information */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">Información de biblioteca</h3>
-                      <div className="h-px bg-gray-200 flex-1"></div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="status" className="text-sm font-medium text-gray-900">
-                          Estado
-                        </Label>
-                        <Select
-                          value={formData.status}
-                          onValueChange={(value) =>
-                            setFormData((prev) => ({ ...prev, status: value }))
-                          }
-                        >
-                          <SelectTrigger id="status" className="focus:ring-2 focus:ring-blue-500">
-                            <SelectValue placeholder="Selecciona estado" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="available">Disponible</SelectItem>
-                            <SelectItem value="borrowed">Prestado</SelectItem>
-                            <SelectItem value="maintenance">En mantenimiento</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="location" className="text-sm font-medium text-gray-900">
-                          Ubicación en biblioteca
-                        </Label>
-                        <Input
-                          id="location"
-                          name="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                          placeholder="Ingresa la ubicación del estante (ej: 'Estante A, Nivel 3')"
-                          className="focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator className="my-8" />
-
-                  {/* Description */}
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm font-medium text-gray-900">
-                      Descripción
+          <div className="lg:col-span-2 space-y-8">
+            <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50/50 p-8 border-b border-gray-100">
+                <CardTitle className="text-xl font-bold text-gray-900">
+                  Detalles del Libro
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="title"
+                      className="text-xs font-black uppercase tracking-widest text-gray-400"
+                    >
+                      Título
                     </Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      value={formData.description}
+                    <Input
+                      id="title"
+                      name="title"
+                      value={formData.title}
                       onChange={handleInputChange}
-                      placeholder="Ingresa la descripción del libro"
-                      rows={5}
-                      className="focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="h-14 rounded-2xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20"
                     />
                   </div>
-
-                  {/* Form Actions */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                      onClick={() => setDeleteDialogOpen(true)}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="author"
+                      className="text-xs font-black uppercase tracking-widest text-gray-400"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar libro
-                    </Button>
-
-                    <div className="flex gap-3">
-                      <Button type="button" variant="outline" asChild>
-                        <Link href="/">Cancelar</Link>
-                      </Button>
-                      <Button type="submit" disabled={submitting} className="min-w-[120px]">
-                        {submitting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="h-4 w-4 mr-2" />
-                            Guardar cambios
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                      Autor
+                    </Label>
+                    <Input
+                      id="author"
+                      name="author"
+                      value={formData.author}
+                      onChange={handleInputChange}
+                      className="h-14 rounded-2xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="isbn"
+                      className="text-xs font-black uppercase tracking-widest text-gray-400"
+                    >
+                      ISBN
+                    </Label>
+                    <Input
+                      id="isbn"
+                      name="isbn"
+                      value={formData.isbn}
+                      onChange={handleInputChange}
+                      className="h-14 rounded-2xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="publisher"
+                      className="text-xs font-black uppercase tracking-widest text-gray-400"
+                    >
+                      Editorial
+                    </Label>
+                    <Input
+                      id="publisher"
+                      name="publisher"
+                      value={formData.publisher}
+                      onChange={handleInputChange}
+                      className="h-14 rounded-2xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="publicationYear"
+                      className="text-xs font-black uppercase tracking-widest text-gray-400"
+                    >
+                      Año
+                    </Label>
+                    <Input
+                      id="publicationYear"
+                      name="publicationYear"
+                      type="number"
+                      value={formData.publicationYear}
+                      onChange={handleInputChange}
+                      className="h-14 rounded-2xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="pages"
+                      className="text-xs font-black uppercase tracking-widest text-gray-400"
+                    >
+                      Páginas
+                    </Label>
+                    <Input
+                      id="pages"
+                      name="pages"
+                      type="number"
+                      value={formData.pages}
+                      onChange={handleInputChange}
+                      className="h-14 rounded-2xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-xs font-black uppercase tracking-widest text-gray-400">
+                    Categoría Académica
+                  </Label>
+                  <div className="flex flex-wrap gap-3">
+                    {categories.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleCategoryToggle(c.id)}
+                        className={`px-6 py-3 rounded-2xl text-sm font-bold transition-all border ${
+                          selectedCategories.includes(c.id)
+                            ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200"
+                            : "bg-white text-gray-600 border-gray-100 hover:bg-gray-50"
+                        }`}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-gray-50">
+                  <div className="space-y-3">
+                    <Label className="text-xs font-black uppercase tracking-widest text-gray-400">
+                      Estado
+                    </Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(val) => setFormData((p) => ({ ...p, status: val }))}
+                    >
+                      <SelectTrigger className="h-14 rounded-2xl border-gray-100 bg-gray-50/30">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl">
+                        <SelectItem value="available">Disponible</SelectItem>
+                        <SelectItem value="borrowed">Prestado</SelectItem>
+                        <SelectItem value="maintenance">Mantenimiento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="location"
+                      className="text-xs font-black uppercase tracking-widest text-gray-400"
+                    >
+                      Ubicación
+                    </Label>
+                    <Input
+                      id="location"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      className="h-14 rounded-2xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="description"
+                    className="text-xs font-black uppercase tracking-widest text-gray-400"
+                  >
+                    Descripción / Resumen
+                  </Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={8}
+                    className="rounded-3xl border-gray-100 bg-gray-50/30 focus:ring-blue-500/20 leading-relaxed p-6"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </form>
+        </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogContent className="rounded-3xl p-8 border-none shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center text-red-600">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              Confirmar eliminación
+            <AlertDialogTitle className="text-2xl font-black text-gray-900">
+              ¿Estás absolutamente seguro?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
-              ¿Estás seguro de que quieres eliminar este libro? Esta acción no se puede deshacer y
-              eliminará permanentemente el libro de la colección junto con todas sus imágenes.
+            <AlertDialogDescription className="text-gray-500 font-medium text-lg mt-2">
+              Esta acción eliminará{" "}
+              <span className="font-bold text-gray-900">&quot;{formData.title}&quot;</span> de la
+              base de datos permanentemente. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="mt-8 gap-3">
+            <AlertDialogCancel className="h-14 rounded-2xl font-bold bg-gray-50 border-none hover:bg-gray-100">
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteBook}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="h-14 rounded-2xl font-bold bg-red-500 hover:bg-red-600 border-none px-8"
             >
-              Eliminar libro
+              Eliminar Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

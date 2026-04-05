@@ -9,78 +9,61 @@ import { EditForm } from "./components/edit-form";
 import type { BookFormData } from "./types/book-types";
 import { toast } from "@/hooks/use-toast";
 import { saveBookWithImages, deleteBookImage, setCoverImage } from "./actions";
-import { toggleHeart, createBorrowRequest } from "@/lib/actions/books";
 import { useRouter } from "next/navigation";
+import type {
+  BookDetailed,
+  Category,
+  BookImage as BookImageData,
+} from "@/src/features/books/types";
+import type { User } from "@/src/features/users/types";
+import { useBookActions } from "./hooks/use-book-actions";
 
 interface BookClientProps {
-  initialBook: any;
-  categories: any[];
-  user: any;
+  initialBook: BookDetailed;
+  categories: Category[];
+  user: unknown;
 }
 
 export default function BookClient({ initialBook, categories, user }: BookClientProps) {
   const router = useRouter();
-  const [book, setBook] = useState(initialBook);
+  const book = initialBook;
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState<BookFormData>(initialBook);
+  const [editForm, setEditForm] = useState<BookFormData>(initialBook as unknown as BookFormData);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    initialBook.categories?.map((c: any) => c.id) || [],
+    initialBook.categories?.map((c) => c.id) || [],
   );
-  const [existingImages, setExistingImages] = useState<any[]>(initialBook.images || []);
+  const [existingImages, setExistingImages] = useState<BookImageData[]>(initialBook.images || []);
   const [saving, setSaving] = useState(false);
-  const [borrowing, setBorrowing] = useState(false);
-  const [borrowNote, setBorrowNote] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const {
+    borrowing,
+    borrowNote,
+    setBorrowNote,
+    isHearted,
+    heartsCount,
+    handleBorrowRequest,
+    handleToggleHeart,
+  } = useBookActions(user as User, initialBook.id, {
+    id: initialBook.id,
+    isHearted: initialBook.isHearted,
+    heartsCount: initialBook.heartsCount,
+  });
+
   const canEdit = Boolean(
-    user && ((user as any).role === "librarian" || (user as any).role === "admin"),
+    user &&
+    ((user as unknown as User).role === "librarian" || (user as unknown as User).role === "admin"),
   );
 
-  const handleHeartClick = async () => {
-    if (!user) {
-      toast({ title: "Inicia sesión", description: "Debes estar conectado para dar corazón." });
-      return;
-    }
-    try {
-      const result = await toggleHeart(book.id);
-      setBook({
-        ...book,
-        is_hearted: result.hearted,
-        heartsCount: result.hearted ? book.heartsCount + 1 : book.heartsCount - 1,
-      });
-      router.refresh();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar el corazón.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleBorrowRequest = async () => {
-    setBorrowing(true);
-    try {
-      await createBorrowRequest(book.id, borrowNote);
-      setDialogOpen(false);
-      setBorrowNote("");
-      toast({
-        title: "Solicitud enviada",
-        description: "Tu solicitud de préstamo ha sido enviada.",
-      });
-      router.refresh();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo enviar la solicitud.",
-        variant: "destructive",
-      });
-    } finally {
-      setBorrowing(false);
-    }
-  };
-
-  const handleSaveBookAsync = async (uploadedImages: any[]) => {
+  const handleSaveBookAsync = async (
+    uploadedImages: {
+      id: string;
+      url: string;
+      fileName: string;
+      isCover: boolean;
+      altText: string;
+    }[],
+  ) => {
     setSaving(true);
     try {
       const result = await saveBookWithImages({
@@ -90,12 +73,12 @@ export default function BookClient({ initialBook, categories, user }: BookClient
           author: editForm.author!,
           isbn: editForm.isbn || undefined,
           publisher: editForm.publisher || undefined,
-          publication_year: editForm.publicationYear ? Number(editForm.publicationYear) : undefined,
+          publicationYear: editForm.publicationYear ? Number(editForm.publicationYear) : undefined,
           pages: editForm.pages ? Number(editForm.pages) : undefined,
           description: editForm.description || undefined,
           status: editForm.status!,
           location: editForm.location || undefined,
-          category_id: selectedCategories[0] || undefined,
+          categoryId: selectedCategories[0] || undefined,
         },
         uploadedImages,
         selectedCategories,
@@ -108,8 +91,9 @@ export default function BookClient({ initialBook, categories, user }: BookClient
       } else {
         throw new Error(result.error);
       }
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Error desconocido";
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -127,7 +111,7 @@ export default function BookClient({ initialBook, categories, user }: BookClient
     const result = await setCoverImage(imageId, book.id, isExisting);
     if (result.success) {
       if (isExisting) {
-        setExistingImages((prev) => prev.map((img) => ({ ...img, is_cover: img.id === imageId })));
+        setExistingImages((prev) => prev.map((img) => ({ ...img, isCover: img.id === imageId })));
       }
       toast({ title: "Portada actualizada" });
     }
@@ -142,9 +126,9 @@ export default function BookClient({ initialBook, categories, user }: BookClient
               <BookImage images={existingImages} title={book.title} />
               <BookActions
                 book={book}
-                isHearted={book.is_hearted}
-                heartsCount={book.heartsCount}
-                onHeart={handleHeartClick}
+                isHearted={isHearted}
+                heartsCount={heartsCount}
+                onHeart={handleToggleHeart}
                 dialogOpen={dialogOpen}
                 setDialogOpen={setDialogOpen}
                 borrowNote={borrowNote}
@@ -179,7 +163,7 @@ export default function BookClient({ initialBook, categories, user }: BookClient
                   onSetCover={handleSetCoverImage}
                   saving={saving}
                   bookId={book.id}
-                  userId={user?.id}
+                  userId={(user as unknown as User)?.id}
                 />
               ) : (
                 <BookDetails book={book} />

@@ -36,10 +36,11 @@ export default function SignInPage() {
 
       router.push("/");
       router.refresh(); // Ensure session state is updated
-    } catch (error: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error al iniciar sesión.";
       toast({
         title: "Error",
-        description: error.message || "Error al iniciar sesión.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

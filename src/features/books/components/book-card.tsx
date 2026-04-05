@@ -1,66 +1,21 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Book } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
-import { toggleHeart } from "@/lib/actions/books";
-import { toast } from "@/hooks/use-toast";
+import type { BookDetailed } from "../types";
 
 interface BookCardProps {
-  book: Book;
-  onHeartChange?: () => void;
+  book: BookDetailed;
+  isHearted: boolean;
+  onToggleHeart: (e: React.MouseEvent) => void;
+  isLoading?: boolean;
 }
 
-export function BookCard({ book, onHeartChange }: BookCardProps) {
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const [isHearted, setIsHearted] = useState(book.is_hearted || false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleHeart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!user) {
-      toast({
-        title: "Inicie sesión",
-        description: "Necesita iniciar sesión para marcar libros como favoritos.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await toggleHeart(book.id);
-      setIsHearted(result.hearted);
-      toast({
-        title: result.hearted ? "Añadido a favoritos" : "Eliminado de favoritos",
-        description: result.hearted
-          ? "Libro añadido a tus favoritos."
-          : "Libro eliminado de tus favoritos.",
-      });
-      onHeartChange?.();
-    } catch (error) {
-      console.error("Error updating heart:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar favoritos. Inténtelo de nuevo.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export function BookCard({ book, isHearted, onToggleHeart, isLoading }: BookCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -87,10 +42,8 @@ export function BookCard({ book, onHeartChange }: BookCardProps) {
     }
   };
 
-  // Get cover image or first image
-  const coverImage = book.images?.find((img) => img.is_cover) || book.images?.[0];
-  const imageUrl =
-    coverImage?.image_url || book.cover_image?.image_url || "/placeholder.svg?height=400&width=300";
+  const coverImage = book.coverImage || book.images?.[0];
+  const imageUrl = coverImage?.imageUrl || "/placeholder.svg?height=400&width=300";
 
   return (
     <Link href={`/books/${book.id}`}>
@@ -99,7 +52,7 @@ export function BookCard({ book, onHeartChange }: BookCardProps) {
           <div className="relative aspect-[3/4] overflow-hidden rounded-t-lg">
             <Image
               src={imageUrl || "/placeholder.svg"}
-              alt={coverImage?.alt_text || book.title}
+              alt={coverImage?.altText || book.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-200"
             />
@@ -112,7 +65,7 @@ export function BookCard({ book, onHeartChange }: BookCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleHeart}
+                onClick={onToggleHeart}
                 disabled={isLoading}
                 className={`h-8 w-8 p-0 bg-white/90 hover:bg-white transition-all duration-200 ${
                   isHearted ? "text-red-500 hover:text-red-600" : "text-gray-600 hover:text-red-500"
@@ -156,10 +109,10 @@ export function BookCard({ book, onHeartChange }: BookCardProps) {
               )}
             </div>
 
-            {book.hearts_count !== undefined && book.hearts_count > 0 && (
+            {book.heartsCount !== undefined && book.heartsCount > 0 && (
               <div className="flex items-center text-xs text-gray-500">
                 <Heart className="h-3 w-3 mr-1 fill-current text-red-400" />
-                {book.hearts_count} {book.hearts_count === 1 ? "me gusta" : "me gusta"}
+                {book.heartsCount} {book.heartsCount === 1 ? "me gusta" : "me gusta"}
               </div>
             )}
           </div>
