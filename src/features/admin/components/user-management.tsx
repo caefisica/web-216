@@ -219,7 +219,7 @@ export function UserManagement() {
               Invitar usuario
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-106.25">
             <DialogHeader>
               <DialogTitle>Invitar nuevo usuario</DialogTitle>
               <DialogDescription>
@@ -286,7 +286,7 @@ export function UserManagement() {
           />
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-full sm:w-[200px] h-12 rounded-2xl border-gray-100 shadow-xs">
+          <SelectTrigger className="w-full sm:w-50 h-12 rounded-2xl border-gray-100 shadow-xs">
             <SelectValue placeholder="Filtrar por rol" />
           </SelectTrigger>
           <SelectContent className="rounded-2xl">
