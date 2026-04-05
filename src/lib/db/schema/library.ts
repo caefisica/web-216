@@ -1,74 +1,6 @@
-import {
-  pgTable,
-  text,
-  integer,
-  timestamp,
-  boolean,
-  uuid,
-  numeric,
-  primaryKey,
-  check,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, uuid, check, primaryKey } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-
-// --- BETTER AUTH TABLES ---
-
-export const user = pgTable("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").notNull(),
-  image: text("image"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  // Custom Domain Columns
-  role: text("role").$type<Role>().default("user").notNull(), // 'user', 'librarian', 'admin', 'suspended'
-  totalDonations: numeric("total_donations").default("0").notNull(),
-});
-
-export type Role = "user" | "librarian" | "admin" | "suspended";
-
-export const session = pgTable("session", {
-  id: text("id").primaryKey(),
-  expiresAt: timestamp("expires_at").notNull(),
-  token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-});
-
-export const account = pgTable("account", {
-  id: text("id").primaryKey(),
-  accountId: text("account_id").notNull(),
-  providerId: text("provider_id").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  idToken: text("id_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-  scope: text("scope"),
-  password: text("password"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-});
-
-export const verification = pgTable("verification", {
-  id: text("id").primaryKey(),
-  identifier: text("identifier").notNull(),
-  value: text("value").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-});
-
-// --- DOMAIN TABLES ---
+import { user } from "./auth";
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -142,39 +74,20 @@ export const borrowRequests = pgTable(
   }),
 );
 
-export const donors = pgTable("donors", {
-  id: uuid("id").primaryKey().defaultRandom().notNull(),
-  name: text("name").notNull(),
-  motivation: text("motivation"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
-
-export const donations = pgTable("donations", {
-  id: uuid("id").primaryKey().defaultRandom().notNull(),
-  donorId: uuid("donor_id")
-    .notNull()
-    .references(() => donors.id, { onDelete: "cascade" }),
-  bookTitle: text("book_title").notNull(),
-  bookAuthor: text("book_author").notNull(),
-  donationDate: timestamp("donation_date", { withTimezone: true }).defaultNow().notNull(),
-  status: text("status").default("pending").notNull(),
-  notes: text("notes"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
-
 export const bookImages = pgTable("book_images", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
   bookId: uuid("book_id")
     .notNull()
     .references(() => books.id, { onDelete: "cascade" }),
   imageUrl: text("image_url").notNull(),
-  isCover: boolean("is_cover").default(false).notNull(),
+  isCover: boolean("is_cover").default(false).notNull(), // Note: boolean was missing in some context earlier, but I'll assume it's imported.
   altText: text("alt_text"),
   displayOrder: integer("display_order").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// Wait, I need to import boolean for bookImages.
+import { boolean } from "drizzle-orm/pg-core";
 
 export const bookCategories = pgTable(
   "book_categories",
