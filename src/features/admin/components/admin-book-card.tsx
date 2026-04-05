@@ -95,7 +95,7 @@ export function AdminBookCard({ book, onDelete, isDeleting }: AdminBookCardProps
       </div>
 
       <Link href={`/books/${book.id}`} className="block">
-        <div className="aspect-[3/4] relative overflow-hidden bg-gray-100">
+        <div className="aspect-3/4 relative overflow-hidden bg-gray-100">
           {imageUrl ? (
             <Image
               src={imageUrl || "/placeholder.svg"}
@@ -105,7 +105,7 @@ export function AdminBookCard({ book, onDelete, isDeleting }: AdminBookCardProps
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100">
               <BookOpen className="h-16 w-16 text-blue-300" />
             </div>
           )}

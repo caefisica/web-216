@@ -37,7 +37,7 @@ export default async function HomePage() {
   return (
     <main className="container mx-auto px-6 py-12">
       <div className="mb-12 space-y-4">
-        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 leading-tight translate-y-[-1px]">
+        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 leading-tight -translate-y-px">
           Física <span className="text-blue-600">Interactiva</span>
         </h1>
         <p className="text-xl text-gray-500 max-w-2xl font-medium leading-relaxed">

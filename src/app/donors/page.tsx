@@ -89,13 +89,13 @@ export default function DonorsPage() {
             <TabsList className="bg-gray-100 p-1.5 rounded-2xl h-auto gap-1">
               <TabsTrigger
                 value="donors"
-                className="rounded-xl px-8 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-sm"
+                className="rounded-xl px-8 py-3 data-[state=active]:bg-white data-[state=active]:shadow-xs font-bold text-sm"
               >
                 Muro de Honor
               </TabsTrigger>
               <TabsTrigger
                 value="donations"
-                className="rounded-xl px-8 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-sm"
+                className="rounded-xl px-8 py-3 data-[state=active]:bg-white data-[state=active]:shadow-xs font-bold text-sm"
               >
                 Últimas Entradas
               </TabsTrigger>
@@ -110,7 +110,7 @@ export default function DonorsPage() {
                   .map((_, i) => (
                     <div
                       key={i}
-                      className="h-64 bg-white border border-gray-100 rounded-3xl animate-pulse shadow-sm"
+                      className="h-64 bg-white border border-gray-100 rounded-3xl animate-pulse shadow-xs"
                     />
                   ))
               ) : activeDonors.length === 0 ? (
@@ -123,9 +123,9 @@ export default function DonorsPage() {
                 activeDonors.map((donor) => (
                   <Card
                     key={donor.id}
-                    className="overflow-hidden border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl border-none ring-1 ring-black/5"
+                    className="overflow-hidden border-gray-100 shadow-xs hover:shadow-xl transition-all duration-300 rounded-3xl border-none ring-1 ring-black/5"
                   >
-                    <CardHeader className="bg-gradient-to-br from-blue-50/50 to-white pb-6 pt-8 px-8">
+                    <CardHeader className="bg-linear-to-br from-blue-50/50 to-white pb-6 pt-8 px-8">
                       <div className="flex items-center gap-4">
                         <div className="h-14 w-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-blue-600/20">
                           {donor.name.charAt(0)}
@@ -144,7 +144,7 @@ export default function DonorsPage() {
                       <Separator className="mb-6 bg-gray-50" />
                       {donor.motivation ? (
                         <div className="relative pt-4 pb-6 px-1">
-                          <Quote className="h-10 w-10 text-blue-50 opacity-50 absolute -top-1 -left-4 -z-0" />
+                          <Quote className="h-10 w-10 text-blue-50 opacity-50 absolute -top-1 -left-4 z-0" />
                           <p className="text-gray-600 font-medium leading-relaxed italic relative z-10">
                             &quot;{donor.motivation}&quot;
                           </p>

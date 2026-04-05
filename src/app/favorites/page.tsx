@@ -101,7 +101,7 @@ export default function FavoritesPage() {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="bg-white aspect-[3/4] rounded-3xl border border-gray-100 animate-pulse shadow-sm"
+                className="bg-white aspect-3/4 rounded-3xl border border-gray-100 animate-pulse shadow-xs"
               />
             ))}
           </div>

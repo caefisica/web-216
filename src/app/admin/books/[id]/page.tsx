@@ -364,7 +364,7 @@ export default function EditBookPage() {
       <div className="container mx-auto px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="space-y-8">
-            <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden">
+            <Card className="rounded-3xl border-gray-100 shadow-xs overflow-hidden">
               <CardHeader className="bg-gray-50/30">
                 <CardTitle className="text-lg font-bold">Galería de Imágenes</CardTitle>
               </CardHeader>
@@ -373,7 +373,7 @@ export default function EditBookPage() {
                   {existingImages.map((image) => (
                     <div
                       key={image.id}
-                      className="group relative aspect-[3/4] rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm ring-1 ring-black/5"
+                      className="group relative aspect-3/4 rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-xs ring-1 ring-black/5"
                     >
                       <Image
                         src={image.imageUrl}
@@ -404,7 +404,7 @@ export default function EditBookPage() {
                         </Button>
                       </div>
                       {image.isCover && (
-                        <div className="absolute top-2 left-2 bg-yellow-500 text-[8px] font-black tracking-tighter text-white px-2 py-0.5 rounded-full shadow-sm">
+                        <div className="absolute top-2 left-2 bg-yellow-500 text-[8px] font-black tracking-tighter text-white px-2 py-0.5 rounded-full shadow-xs">
                           PORTADA
                         </div>
                       )}
@@ -412,7 +412,7 @@ export default function EditBookPage() {
                   ))}
                   <div
                     {...getRootProps()}
-                    className={`aspect-[3/4] border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-4 cursor-pointer transition-all ${
+                    className={`aspect-3/4 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-4 cursor-pointer transition-all ${
                       isDragActive
                         ? "border-blue-400 bg-blue-50"
                         : "border-gray-200 hover:border-blue-400 hover:bg-gray-50/50"
@@ -435,7 +435,7 @@ export default function EditBookPage() {
                       {newImageUploads.map((image) => (
                         <div
                           key={image.id}
-                          className="relative aspect-[3/4] rounded-2xl overflow-hidden border-2 border-blue-100 bg-blue-50/20"
+                          className="relative aspect-3/4 rounded-2xl overflow-hidden border-2 border-blue-100 bg-blue-50/20"
                         >
                           <Image
                             src={image.preview}
@@ -471,7 +471,7 @@ export default function EditBookPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-8">
-            <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden">
+            <Card className="rounded-3xl border-gray-100 shadow-xs overflow-hidden">
               <CardHeader className="bg-gray-50/50 p-8 border-b border-gray-100">
                 <CardTitle className="text-xl font-bold text-gray-900">
                   Detalles del Libro

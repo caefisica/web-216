@@ -198,7 +198,7 @@ export default function ProfilePage() {
       <div className="container mx-auto px-6 py-12">
         <Tabs defaultValue="account" className="space-y-10">
           <div className="flex justify-start">
-            <TabsList className="bg-white p-1.5 rounded-2xl h-auto gap-1 border border-gray-100 shadow-sm">
+            <TabsList className="bg-white p-1.5 rounded-2xl h-auto gap-1 border border-gray-100 shadow-xs">
               <TabsTrigger
                 value="account"
                 className="rounded-xl px-10 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold text-sm transition-all"
@@ -221,7 +221,7 @@ export default function ProfilePage() {
           </div>
 
           <TabsContent value="account">
-            <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden bg-white">
+            <Card className="rounded-3xl border-gray-100 shadow-xs overflow-hidden bg-white">
               <CardHeader className="p-8 border-b border-gray-50 bg-gray-50/30">
                 <CardTitle className="text-xl font-bold">Información Personal</CardTitle>
                 <CardDescription className="font-medium text-gray-400">
@@ -298,7 +298,7 @@ export default function ProfilePage() {
                   .map((_, i) => (
                     <div
                       key={i}
-                      className="h-32 bg-white rounded-3xl animate-pulse border border-gray-100 shadow-sm"
+                      className="h-32 bg-white rounded-3xl animate-pulse border border-gray-100 shadow-xs"
                     />
                   ))
               ) : activeLoans.length === 0 ? (
@@ -318,12 +318,12 @@ export default function ProfilePage() {
                 activeLoans.map((req) => (
                   <Card
                     key={req.id}
-                    className="rounded-3xl border-gray-100 shadow-sm overflow-hidden bg-white hover:shadow-md transition-shadow group"
+                    className="rounded-3xl border-gray-100 shadow-xs overflow-hidden bg-white hover:shadow-md transition-shadow group"
                   >
                     <CardContent className="p-8">
                       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div className="flex gap-6">
-                          <div className="h-20 w-16 relative bg-gray-50 rounded-xl overflow-hidden border flex-shrink-0">
+                          <div className="h-20 w-16 relative bg-gray-50 rounded-xl overflow-hidden border shrink-0">
                             {req.book?.images?.[0]?.imageUrl && (
                               <Image
                                 src={req.book.images[0].imageUrl}
@@ -365,7 +365,7 @@ export default function ProfilePage() {
           </TabsContent>
 
           <TabsContent value="history">
-            <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden bg-white">
+            <Card className="rounded-3xl border-gray-100 shadow-xs overflow-hidden bg-white">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left border-collapse">
