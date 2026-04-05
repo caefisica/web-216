@@ -19,14 +19,14 @@ export async function uploadBookImage(formData: FormData) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const fileName = `temp/${crypto.randomUUID()}-${file.name}`;
-  
+
   await uploadFile(fileName, buffer, file.type);
   const url = await getFileUrl(fileName);
-  
-  return { 
-    success: true, 
-    url: url, 
-    fileName: fileName
+
+  return {
+    success: true,
+    url: url,
+    fileName: fileName,
   };
 }
 
@@ -127,7 +127,8 @@ export async function saveBookWithImages(data: SaveBookData) {
     }
 
     // 2. Update book basic information
-    await db.update(books)
+    await db
+      .update(books)
       .set({
         ...bookData,
         updatedAt: new Date(),
@@ -138,17 +139,17 @@ export async function saveBookWithImages(data: SaveBookData) {
 
     // 3. Insert new images into book_images table
     if (finalImages.length > 0) {
-      const existingImagesList = await db.select({
-        displayOrder: bookImages.displayOrder
-      })
-      .from(bookImages)
-      .where(eq(bookImages.bookId, bookId))
-      .orderBy(desc(bookImages.displayOrder))
-      .limit(1);
+      const existingImagesList = await db
+        .select({
+          displayOrder: bookImages.displayOrder,
+        })
+        .from(bookImages)
+        .where(eq(bookImages.bookId, bookId))
+        .orderBy(desc(bookImages.displayOrder))
+        .limit(1);
 
-      const nextDisplayOrder = existingImagesList.length > 0 
-        ? (existingImagesList[0].displayOrder || 0) + 1 
-        : 0;
+      const nextDisplayOrder =
+        existingImagesList.length > 0 ? (existingImagesList[0].displayOrder || 0) + 1 : 0;
 
       const imageRecords = finalImages.map((img, index) => ({
         bookId: bookId,
@@ -214,12 +215,13 @@ export async function deleteBookImage(imageId: string, bookId: string) {
     if (!session) throw new Error("Unauthorized");
 
     // Get image info first
-    const imageDataList = await db.select({
-      imageUrl: bookImages.imageUrl
-    })
-    .from(bookImages)
-    .where(eq(bookImages.id, imageId))
-    .limit(1);
+    const imageDataList = await db
+      .select({
+        imageUrl: bookImages.imageUrl,
+      })
+      .from(bookImages)
+      .where(eq(bookImages.id, imageId))
+      .limit(1);
 
     if (imageDataList.length === 0) {
       throw new Error("Image not found");
@@ -251,11 +253,7 @@ export async function deleteBookImage(imageId: string, bookId: string) {
   }
 }
 
-export async function setCoverImage(
-  imageId: string,
-  bookId: string,
-  isExisting: boolean,
-) {
+export async function setCoverImage(imageId: string, bookId: string, isExisting: boolean) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -263,13 +261,9 @@ export async function setCoverImage(
     if (!session) throw new Error("Unauthorized");
 
     if (isExisting) {
-      await db.update(bookImages)
-        .set({ isCover: false })
-        .where(eq(bookImages.bookId, bookId));
+      await db.update(bookImages).set({ isCover: false }).where(eq(bookImages.bookId, bookId));
 
-      await db.update(bookImages)
-        .set({ isCover: true })
-        .where(eq(bookImages.id, imageId));
+      await db.update(bookImages).set({ isCover: true }).where(eq(bookImages.id, imageId));
     }
 
     revalidatePath(`/books/${bookId}`);

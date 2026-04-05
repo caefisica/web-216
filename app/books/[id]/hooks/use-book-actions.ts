@@ -39,10 +39,7 @@ export function useBookActions(user: User | null, bookId: string) {
     }
   };
 
-  const handleUpdateBook = async (
-    editForm: BookFormData,
-    onSuccess?: () => void,
-  ) => {
+  const handleUpdateBook = async (editForm: BookFormData, onSuccess?: () => void) => {
     try {
       const updateData = {
         title: editForm.title,

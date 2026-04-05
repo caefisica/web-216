@@ -18,17 +18,13 @@ interface BookClientProps {
   user: any;
 }
 
-export default function BookClient({
-  initialBook,
-  categories,
-  user,
-}: BookClientProps) {
+export default function BookClient({ initialBook, categories, user }: BookClientProps) {
   const router = useRouter();
   const [book, setBook] = useState(initialBook);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<BookFormData>(initialBook);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    initialBook.categories?.map((c: any) => c.id) || []
+    initialBook.categories?.map((c: any) => c.id) || [],
   );
   const [existingImages, setExistingImages] = useState<any[]>(initialBook.images || []);
   const [saving, setSaving] = useState(false);
@@ -37,7 +33,7 @@ export default function BookClient({
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const canEdit = Boolean(
-    user && ((user as any).role === "librarian" || (user as any).role === "admin")
+    user && ((user as any).role === "librarian" || (user as any).role === "admin"),
   );
 
   const handleHeartClick = async () => {
@@ -47,14 +43,18 @@ export default function BookClient({
     }
     try {
       const result = await toggleHeart(book.id);
-      setBook({ 
-        ...book, 
+      setBook({
+        ...book,
         is_hearted: result.hearted,
-        heartsCount: result.hearted ? book.heartsCount + 1 : book.heartsCount - 1
+        heartsCount: result.hearted ? book.heartsCount + 1 : book.heartsCount - 1,
       });
       router.refresh();
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo actualizar el corazón.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el corazón.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -64,10 +64,17 @@ export default function BookClient({
       await createBorrowRequest(book.id, borrowNote);
       setDialogOpen(false);
       setBorrowNote("");
-      toast({ title: "Solicitud enviada", description: "Tu solicitud de préstamo ha sido enviada." });
+      toast({
+        title: "Solicitud enviada",
+        description: "Tu solicitud de préstamo ha sido enviada.",
+      });
       router.refresh();
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo enviar la solicitud.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "No se pudo enviar la solicitud.",
+        variant: "destructive",
+      });
     } finally {
       setBorrowing(false);
     }
@@ -111,7 +118,7 @@ export default function BookClient({
   const removeExistingImage = async (imageId: string) => {
     const result = await deleteBookImage(imageId, book.id);
     if (result.success) {
-      setExistingImages(prev => prev.filter(img => img.id !== imageId));
+      setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
       toast({ title: "Imagen eliminada" });
     }
   };
@@ -120,7 +127,7 @@ export default function BookClient({
     const result = await setCoverImage(imageId, book.id, isExisting);
     if (result.success) {
       if (isExisting) {
-        setExistingImages(prev => prev.map(img => ({ ...img, is_cover: img.id === imageId })));
+        setExistingImages((prev) => prev.map((img) => ({ ...img, is_cover: img.id === imageId })));
       }
       toast({ title: "Portada actualizada" });
     }
@@ -158,13 +165,15 @@ export default function BookClient({
               {isEditing ? (
                 <EditForm
                   editForm={editForm}
-                  onFormChange={(f, v) => setEditForm(p => ({ ...p, [f]: v }))}
+                  onFormChange={(f, v) => setEditForm((p) => ({ ...p, [f]: v }))}
                   onSave={handleSaveBookAsync}
                   categories={categories}
                   selectedCategories={selectedCategories}
-                  onCategoryToggle={(id) => setSelectedCategories(prev => 
-                    prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-                  )}
+                  onCategoryToggle={(id) =>
+                    setSelectedCategories((prev) =>
+                      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+                    )
+                  }
                   existingImages={existingImages}
                   onImageRemove={removeExistingImage}
                   onSetCover={handleSetCoverImage}

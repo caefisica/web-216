@@ -33,7 +33,7 @@ export default function SignInPage() {
         title: "¡Bienvenido de vuelta!",
         description: "Has iniciado sesión correctamente.",
       });
-      
+
       router.push("/");
       router.refresh(); // Ensure session state is updated
     } catch (error: any) {

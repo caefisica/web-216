@@ -10,10 +10,7 @@ interface BookImageProps {
   title?: string;
 }
 
-export function BookImage({
-  images = [],
-  title = "Book cover",
-}: BookImageProps) {
+export function BookImage({ images = [], title = "Book cover" }: BookImageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // If no images provided, use a placeholder
@@ -53,10 +50,7 @@ export function BookImage({
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border">
         <Image
           src={images[currentImageIndex].image_url || "/placeholder.svg"}
-          alt={
-            images[currentImageIndex].alt_text ||
-            `${title} - Image ${currentImageIndex + 1}`
-          }
+          alt={images[currentImageIndex].alt_text || `${title} - Image ${currentImageIndex + 1}`}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 33vw"
@@ -70,9 +64,7 @@ export function BookImage({
             size="icon"
             className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
             onClick={() =>
-              setCurrentImageIndex((prev) =>
-                prev === 0 ? images.length - 1 : prev - 1,
-              )
+              setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
             }
           >
             <ChevronLeft className="h-4 w-4" />
@@ -83,9 +75,7 @@ export function BookImage({
             size="icon"
             className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
             onClick={() =>
-              setCurrentImageIndex((prev) =>
-                prev === images.length - 1 ? 0 : prev + 1,
-              )
+              setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
             }
           >
             <ChevronRight className="h-4 w-4" />
@@ -105,9 +95,7 @@ export function BookImage({
           <button
             key={index}
             className={`relative h-16 w-12 flex-shrink-0 overflow-hidden rounded border-2 ${
-              index === currentImageIndex
-                ? "border-primary"
-                : "border-transparent"
+              index === currentImageIndex ? "border-primary" : "border-transparent"
             }`}
             onClick={() => setCurrentImageIndex(index)}
           >

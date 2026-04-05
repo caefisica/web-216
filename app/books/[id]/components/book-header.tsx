@@ -12,12 +12,7 @@ interface BookHeaderProps {
   onToggleEditing: () => void;
 }
 
-export function BookHeader({
-  book,
-  canEdit,
-  isEditing,
-  onToggleEditing,
-}: BookHeaderProps) {
+export function BookHeader({ book, canEdit, isEditing, onToggleEditing }: BookHeaderProps) {
   return (
     <div className="flex justify-between items-start mb-6">
       <div className="flex-1">

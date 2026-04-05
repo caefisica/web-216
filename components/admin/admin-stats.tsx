@@ -74,20 +74,14 @@ export function AdminStats() {
     fetchStatistics();
   }, []);
 
-  const calculatePopularityScore = (
-    borrowCount: number,
-    heartsCount: number,
-  ): number => {
-    return (
-      borrowCount * POPULARITY_WEIGHTS.BORROW_REQUEST +
-      heartsCount * POPULARITY_WEIGHTS.HEART
-    );
+  const calculatePopularityScore = (borrowCount: number, heartsCount: number): number => {
+    return borrowCount * POPULARITY_WEIGHTS.BORROW_REQUEST + heartsCount * POPULARITY_WEIGHTS.HEART;
   };
 
   const fetchStatistics = async () => {
     try {
       const data = await getDetailedAdminStats();
-      
+
       setAllPopularBooks(data.popularBooks as any);
       setActiveUsers(data.activeUsers as any);
       setMonthlyData(data.monthlyData as any);
@@ -149,16 +143,9 @@ export function AdminStats() {
   };
 
   const getPopularityBadge = (score: number) => {
-    if (score >= 10)
-      return <Badge className="bg-red-100 text-red-800">🔥 Muy Popular</Badge>;
-    if (score >= 6)
-      return (
-        <Badge className="bg-orange-100 text-orange-800">⭐ Popular</Badge>
-      );
-    if (score >= 3)
-      return (
-        <Badge className="bg-yellow-100 text-yellow-800">📈 En Tendencia</Badge>
-      );
+    if (score >= 10) return <Badge className="bg-red-100 text-red-800">🔥 Muy Popular</Badge>;
+    if (score >= 6) return <Badge className="bg-orange-100 text-orange-800">⭐ Popular</Badge>;
+    if (score >= 3) return <Badge className="bg-yellow-100 text-yellow-800">📈 En Tendencia</Badge>;
     return <Badge variant="outline">💡 Emergente</Badge>;
   };
 
@@ -190,12 +177,8 @@ export function AdminStats() {
             <div className="flex items-center">
               <BarChart3 className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Total de préstamos
-                </p>
-                <p className="text-2xl font-bold">
-                  {overallStats.totalBorrows}
-                </p>
+                <p className="text-sm font-medium text-gray-600">Total de préstamos</p>
+                <p className="text-2xl font-bold">{overallStats.totalBorrows}</p>
               </div>
             </div>
           </CardContent>
@@ -206,12 +189,8 @@ export function AdminStats() {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Devoluciones
-                </p>
-                <p className="text-2xl font-bold">
-                  {overallStats.totalReturns}
-                </p>
+                <p className="text-sm font-medium text-gray-600">Devoluciones</p>
+                <p className="text-2xl font-bold">{overallStats.totalReturns}</p>
               </div>
             </div>
           </CardContent>
@@ -222,12 +201,8 @@ export function AdminStats() {
             <div className="flex items-center">
               <Clock className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Tiempo promedio
-                </p>
-                <p className="text-2xl font-bold">
-                  {overallStats.averageBorrowTime}d
-                </p>
+                <p className="text-sm font-medium text-gray-600">Tiempo promedio</p>
+                <p className="text-2xl font-bold">{overallStats.averageBorrowTime}d</p>
               </div>
             </div>
           </CardContent>
@@ -238,12 +213,8 @@ export function AdminStats() {
             <div className="flex items-center">
               <Target className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Tasa de utilización
-                </p>
-                <p className="text-2xl font-bold">
-                  {overallStats.bookUtilizationRate}%
-                </p>
+                <p className="text-sm font-medium text-gray-600">Tasa de utilización</p>
+                <p className="text-2xl font-bold">{overallStats.bookUtilizationRate}%</p>
               </div>
             </div>
           </CardContent>
@@ -259,13 +230,11 @@ export function AdminStats() {
                 <Star className="h-5 w-5" />
                 Libros más populares
               </CardTitle>
-              <div className="text-sm text-gray-500">
-                {allPopularBooks.length} libros activos
-              </div>
+              <div className="text-sm text-gray-500">{allPopularBooks.length} libros activos</div>
             </div>
             <div className="text-xs text-gray-400">
-              Puntuación: Préstamos ×{POPULARITY_WEIGHTS.BORROW_REQUEST} +
-              Corazones ×{POPULARITY_WEIGHTS.HEART}
+              Puntuación: Préstamos ×{POPULARITY_WEIGHTS.BORROW_REQUEST} + Corazones ×
+              {POPULARITY_WEIGHTS.HEART}
             </div>
           </CardHeader>
           <CardContent>
@@ -276,8 +245,7 @@ export function AdminStats() {
                 </p>
               ) : (
                 getCurrentBooks().map((book, index) => {
-                  const globalRank =
-                    currentBooksPage * BOOKS_PER_PAGE + index + 1;
+                  const globalRank = currentBooksPage * BOOKS_PER_PAGE + index + 1;
                   return (
                     <div
                       key={book.id}
@@ -285,9 +253,7 @@ export function AdminStats() {
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full">
-                          <span className="text-sm font-bold text-blue-600">
-                            #{globalRank}
-                          </span>
+                          <span className="text-sm font-bold text-blue-600">#{globalRank}</span>
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold">{book.title}</h4>
@@ -302,15 +268,11 @@ export function AdminStats() {
                         <div className="flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <BookOpen className="h-4 w-4 text-blue-600" />
-                            <span className="font-semibold">
-                              {book.borrow_count}
-                            </span>
+                            <span className="font-semibold">{book.borrow_count}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Heart className="h-4 w-4 text-red-500" />
-                            <span className="font-semibold">
-                              {book.hearts_count}
-                            </span>
+                            <span className="font-semibold">{book.hearts_count}</span>
                           </div>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
@@ -329,9 +291,7 @@ export function AdminStats() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentBooksPage(Math.max(0, currentBooksPage - 1))
-                  }
+                  onClick={() => setCurrentBooksPage(Math.max(0, currentBooksPage - 1))}
                   disabled={currentBooksPage === 0}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
@@ -344,9 +304,7 @@ export function AdminStats() {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    setCurrentBooksPage(
-                      Math.min(totalBooksPages - 1, currentBooksPage + 1),
-                    )
+                    setCurrentBooksPage(Math.min(totalBooksPages - 1, currentBooksPage + 1))
                   }
                   disabled={currentBooksPage === totalBooksPages - 1}
                 >
@@ -366,9 +324,7 @@ export function AdminStats() {
                 <Users className="h-5 w-5" />
                 Usuarios más activos
               </CardTitle>
-              <div className="text-sm text-gray-500">
-                {activeUsers.length} usuarios activos
-              </div>
+              <div className="text-sm text-gray-500">{activeUsers.length} usuarios activos</div>
             </div>
           </CardHeader>
           <CardContent>
@@ -379,8 +335,7 @@ export function AdminStats() {
                 </p>
               ) : (
                 getCurrentUsers().map((user, index) => {
-                  const globalRank =
-                    currentUsersPage * BOOKS_PER_PAGE + index + 1;
+                  const globalRank = currentUsersPage * BOOKS_PER_PAGE + index + 1;
                   return (
                     <div
                       key={user.id}
@@ -388,9 +343,7 @@ export function AdminStats() {
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
-                          <span className="text-sm font-bold text-green-600">
-                            #{globalRank}
-                          </span>
+                          <span className="text-sm font-bold text-green-600">#{globalRank}</span>
                         </div>
                         <div>
                           <h4 className="font-semibold">{user.name}</h4>
@@ -398,12 +351,8 @@ export function AdminStats() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="flex items-center gap-2">
-                          {getRoleBadge(user.role)}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {user.borrow_count} préstamos
-                        </p>
+                        <div className="flex items-center gap-2">{getRoleBadge(user.role)}</div>
+                        <p className="text-sm text-gray-600 mt-1">{user.borrow_count} préstamos</p>
                       </div>
                     </div>
                   );
@@ -417,9 +366,7 @@ export function AdminStats() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentUsersPage(Math.max(0, currentUsersPage - 1))
-                  }
+                  onClick={() => setCurrentUsersPage(Math.max(0, currentUsersPage - 1))}
                   disabled={currentUsersPage === 0}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
@@ -432,9 +379,7 @@ export function AdminStats() {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    setCurrentUsersPage(
-                      Math.min(totalUsersPages - 1, currentUsersPage + 1),
-                    )
+                    setCurrentUsersPage(Math.min(totalUsersPages - 1, currentUsersPage + 1))
                   }
                   disabled={currentUsersPage === totalUsersPages - 1}
                 >
@@ -472,9 +417,7 @@ export function AdminStats() {
                   </div>
                   <Progress
                     value={
-                      (month.borrows /
-                        Math.max(...monthlyData.map((m) => m.borrows), 1)) *
-                      100
+                      (month.borrows / Math.max(...monthlyData.map((m) => m.borrows), 1)) * 100
                     }
                     className="h-2"
                   />
@@ -486,9 +429,7 @@ export function AdminStats() {
                   </div>
                   <Progress
                     value={
-                      (month.returns /
-                        Math.max(...monthlyData.map((m) => m.returns), 1)) *
-                      100
+                      (month.returns / Math.max(...monthlyData.map((m) => m.returns), 1)) * 100
                     }
                     className="h-2 bg-green-100"
                   />
@@ -508,16 +449,10 @@ export function AdminStats() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">
-                  Tasa de devolución
-                </span>
+                <span className="text-sm text-gray-600">Tasa de devolución</span>
                 <span className="font-semibold">
                   {overallStats.totalBorrows > 0
-                    ? Math.round(
-                        (overallStats.totalReturns /
-                          overallStats.totalBorrows) *
-                          100,
-                      )
+                    ? Math.round((overallStats.totalReturns / overallStats.totalBorrows) * 100)
                     : 0}
                   %
                 </span>
@@ -525,10 +460,7 @@ export function AdminStats() {
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Libros populares</span>
                 <span className="font-semibold">
-                  {
-                    allPopularBooks.filter((book) => book.popularity_score >= 6)
-                      .length
-                  }
+                  {allPopularBooks.filter((book) => book.popularity_score >= 6).length}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -552,20 +484,14 @@ export function AdminStats() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">
-                  Crecimiento de usuarios
-                </span>
+                <span className="text-sm text-gray-600">Crecimiento de usuarios</span>
                 <span className="font-semibold text-green-600">
                   +{overallStats.userGrowthRate}%
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">
-                  Tiempo promedio de préstamo
-                </span>
-                <span className="font-semibold">
-                  {overallStats.averageBorrowTime} días
-                </span>
+                <span className="text-sm text-gray-600">Tiempo promedio de préstamo</span>
+                <span className="font-semibold">{overallStats.averageBorrowTime} días</span>
               </div>
             </div>
           </CardContent>
@@ -578,16 +504,11 @@ export function AdminStats() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">
-                  Puntuación promedio
-                </span>
+                <span className="text-sm text-gray-600">Puntuación promedio</span>
                 <span className="font-semibold">
                   {allPopularBooks.length > 0
                     ? Math.round(
-                        (allPopularBooks.reduce(
-                          (sum, book) => sum + book.popularity_score,
-                          0,
-                        ) /
+                        (allPopularBooks.reduce((sum, book) => sum + book.popularity_score, 0) /
                           allPopularBooks.length) *
                           10,
                       ) / 10
@@ -597,23 +518,13 @@ export function AdminStats() {
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Muy populares</span>
                 <span className="font-semibold text-red-600">
-                  {
-                    allPopularBooks.filter(
-                      (book) => book.popularity_score >= 10,
-                    ).length
-                  }
+                  {allPopularBooks.filter((book) => book.popularity_score >= 10).length}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">
-                  Necesitan promoción
-                </span>
+                <span className="text-sm text-gray-600">Necesitan promoción</span>
                 <span className="font-semibold text-orange-600">
-                  {
-                    allPopularBooks.filter(
-                      (book) => book.popularity_score === 0,
-                    ).length
-                  }
+                  {allPopularBooks.filter((book) => book.popularity_score === 0).length}
                 </span>
               </div>
             </div>

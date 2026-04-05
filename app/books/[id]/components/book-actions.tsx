@@ -72,11 +72,7 @@ export function BookActions({
                   className="mt-2"
                 />
               </div>
-              <Button
-                onClick={onBorrowRequest}
-                disabled={borrowing}
-                className="w-full"
-              >
+              <Button onClick={onBorrowRequest} disabled={borrowing} className="w-full">
                 {borrowing ? "Enviando..." : "Enviar solicitud"}
               </Button>
             </div>

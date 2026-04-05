@@ -1,6 +1,5 @@
 "use client";
 
-
 import type React from "react";
 
 import { useEffect, useState, useCallback } from "react";
@@ -8,7 +7,17 @@ import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { getBookById, getCategories, updateBook, deleteBook, uploadImage, deleteBookImage, updateBookCategories, setBookCoverImage, addBookImage } from "@/lib/actions/books";
+import {
+  getBookById,
+  getCategories,
+  updateBook,
+  deleteBook,
+  uploadImage,
+  deleteBookImage,
+  updateBookCategories,
+  setBookCoverImage,
+  addBookImage,
+} from "@/lib/actions/books";
 import type { Category, BookImage } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
@@ -37,15 +46,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import {
-  X,
-  Loader2,
-  Save,
-  AlertTriangle,
-  Trash2,
-  Star,
-  Upload,
-} from "lucide-react";
+import { X, Loader2, Save, AlertTriangle, Trash2, Star, Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
 interface ImageUpload {
@@ -83,10 +84,7 @@ export default function EditBookPage() {
   });
 
   useEffect(() => {
-    if (
-      !authLoading &&
-      (!user || (user.role !== "librarian" && user.role !== "admin"))
-    ) {
+    if (!authLoading && (!user || (user.role !== "librarian" && user.role !== "admin"))) {
       router.push("/");
     }
   }, [user, authLoading, router]);
@@ -130,16 +128,13 @@ export default function EditBookPage() {
         });
 
         // Set selected categories
-        const categoryIds =
-          bookData.categories?.map((c: any) => c.id) || [];
+        const categoryIds = bookData.categories?.map((c: any) => c.id) || [];
         setSelectedCategories(categoryIds);
 
         // Set existing images
         const images = bookData.images || [];
         setExistingImages(
-          images.sort(
-            (a: BookImage, b: BookImage) => a.display_order - b.display_order,
-          ),
+          images.sort((a: BookImage, b: BookImage) => a.display_order - b.display_order),
         );
       }
     } catch (error) {
@@ -162,8 +157,7 @@ export default function EditBookPage() {
             id: Math.random().toString(36).substring(2, 15),
             file,
             preview: URL.createObjectURL(file),
-            isCover:
-              existingImages.length === 0 && newImageUploads.length === 0,
+            isCover: existingImages.length === 0 && newImageUploads.length === 0,
             altText: "",
           };
           setNewImageUploads((prev) => [...prev, newImage]);
@@ -187,18 +181,14 @@ export default function EditBookPage() {
     multiple: true,
   });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId],
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
     );
   };
 
@@ -228,18 +218,12 @@ export default function EditBookPage() {
     try {
       if (isExisting) {
         await setBookCoverImage(bookId, imageId);
-        setExistingImages((prev) =>
-          prev.map((img) => ({ ...img, is_cover: img.id === imageId })),
-        );
+        setExistingImages((prev) => prev.map((img) => ({ ...img, is_cover: img.id === imageId })));
       } else {
         // Update new uploads
-        setNewImageUploads((prev) =>
-          prev.map((img) => ({ ...img, isCover: img.id === imageId })),
-        );
+        setNewImageUploads((prev) => prev.map((img) => ({ ...img, isCover: img.id === imageId })));
         // Also unset existing covers
-        setExistingImages((prev) =>
-          prev.map((img) => ({ ...img, is_cover: false })),
-        );
+        setExistingImages((prev) => prev.map((img) => ({ ...img, is_cover: false })));
       }
 
       toast({
@@ -292,12 +276,7 @@ export default function EditBookPage() {
 
         const { url } = await uploadImage(uploadFormData);
 
-        await addBookImage(
-          bookId,
-          url,
-          imageUpload.isCover,
-          existingImages.length + i,
-        );
+        await addBookImage(bookId, url, imageUpload.isCover, existingImages.length + i);
       }
 
       // Update categories
@@ -329,8 +308,7 @@ export default function EditBookPage() {
 
       toast({
         title: "Libro eliminado",
-        description:
-          "El libro ha sido eliminado correctamente de la biblioteca.",
+        description: "El libro ha sido eliminado correctamente de la biblioteca.",
       });
 
       router.push("/");
@@ -374,9 +352,7 @@ export default function EditBookPage() {
   }
 
   const allImages = [...existingImages, ...newImageUploads];
-  const hasCoverImage = allImages.some((img) =>
-    "is_cover" in img ? img.is_cover : img.isCover,
-  );
+  const hasCoverImage = allImages.some((img) => ("is_cover" in img ? img.is_cover : img.isCover));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -384,12 +360,9 @@ export default function EditBookPage() {
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Editar libro
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar libro</h1>
             <p className="text-lg text-gray-600">
-              Actualizar la información del libro en la colección de la
-              biblioteca
+              Actualizar la información del libro en la colección de la biblioteca
             </p>
           </div>
         </div>
@@ -403,9 +376,7 @@ export default function EditBookPage() {
             <div className="lg:order-1">
               <Card className="shadow-sm">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold">
-                    Imágenes del libro
-                  </CardTitle>
+                  <CardTitle className="text-lg font-semibold">Imágenes del libro</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Existing Images */}
@@ -415,10 +386,7 @@ export default function EditBookPage() {
                         Imágenes actuales ({existingImages.length})
                       </h4>
                       {existingImages.map((image) => (
-                        <div
-                          key={image.id}
-                          className="relative border rounded-lg p-3 space-y-2"
-                        >
+                        <div key={image.id} className="relative border rounded-lg p-3 space-y-2">
                           <div className="flex items-start gap-3">
                             <div className="relative w-16 h-20 flex-shrink-0">
                               <Image
@@ -440,9 +408,7 @@ export default function EditBookPage() {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() =>
-                                      setCoverImage(image.id, true)
-                                    }
+                                    onClick={() => setCoverImage(image.id, true)}
                                     className="text-xs"
                                   >
                                     <Star className="h-3 w-3 mr-1" />
@@ -485,9 +451,7 @@ export default function EditBookPage() {
                     <input {...getInputProps()} />
                     <Upload className="h-8 w-8 text-gray-400 mb-2" />
                     <p className="text-sm text-center text-gray-600 mb-1">
-                      {isDragActive
-                        ? "Suelta las imágenes aquí"
-                        : "Añadir más imágenes"}
+                      {isDragActive ? "Suelta las imágenes aquí" : "Añadir más imágenes"}
                     </p>
                     <p className="text-xs text-center text-gray-500">
                       Arrastra y suelta o haz clic
@@ -526,9 +490,7 @@ export default function EditBookPage() {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() =>
-                                      setCoverImage(imageUpload.id, false)
-                                    }
+                                    onClick={() => setCoverImage(imageUpload.id, false)}
                                     className="text-xs"
                                   >
                                     <Star className="h-3 w-3 mr-1" />
@@ -562,8 +524,8 @@ export default function EditBookPage() {
                   {!hasCoverImage && allImages.length > 0 && (
                     <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                       <p className="text-sm text-yellow-800">
-                        ⚠️ No hay imagen de portada seleccionada. Selecciona una
-                        imagen como portada.
+                        ⚠️ No hay imagen de portada seleccionada. Selecciona una imagen como
+                        portada.
                       </p>
                     </div>
                   )}
@@ -575,26 +537,19 @@ export default function EditBookPage() {
             <div className="lg:col-span-2 lg:order-2">
               <Card className="shadow-sm">
                 <CardHeader className="pb-6">
-                  <CardTitle className="text-lg font-semibold">
-                    Información del libro
-                  </CardTitle>
+                  <CardTitle className="text-lg font-semibold">Información del libro</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   {/* Basic Information */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">
-                        Información básica
-                      </h3>
+                      <h3 className="font-semibold text-gray-900">Información básica</h3>
                       <div className="h-px bg-gray-200 flex-1"></div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="title"
-                          className="text-sm font-medium text-gray-900"
-                        >
+                        <Label htmlFor="title" className="text-sm font-medium text-gray-900">
                           Título <span className="text-red-500">*</span>
                         </Label>
                         <Input
@@ -609,10 +564,7 @@ export default function EditBookPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="author"
-                          className="text-sm font-medium text-gray-900"
-                        >
+                        <Label htmlFor="author" className="text-sm font-medium text-gray-900">
                           Autor <span className="text-red-500">*</span>
                         </Label>
                         <Input
@@ -629,10 +581,7 @@ export default function EditBookPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="isbn"
-                          className="text-sm font-medium text-gray-900"
-                        >
+                        <Label htmlFor="isbn" className="text-sm font-medium text-gray-900">
                           ISBN
                         </Label>
                         <Input
@@ -646,10 +595,7 @@ export default function EditBookPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="publisher"
-                          className="text-sm font-medium text-gray-900"
-                        >
+                        <Label htmlFor="publisher" className="text-sm font-medium text-gray-900">
                           Editorial
                         </Label>
                         <Input
@@ -685,10 +631,7 @@ export default function EditBookPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="pages"
-                          className="text-sm font-medium text-gray-900"
-                        >
+                        <Label htmlFor="pages" className="text-sm font-medium text-gray-900">
                           Número de páginas
                         </Label>
                         <Input
@@ -710,23 +653,16 @@ export default function EditBookPage() {
                   {/* Categories */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">
-                        Categorías
-                      </h3>
+                      <h3 className="font-semibold text-gray-900">Categorías</h3>
                       <div className="h-px bg-gray-200 flex-1"></div>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {categories.map((category) => (
-                        <div
-                          key={category.id}
-                          className="flex items-center space-x-2"
-                        >
+                        <div key={category.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`category-${category.id}`}
                             checked={selectedCategories.includes(category.id)}
-                            onCheckedChange={() =>
-                              handleCategoryToggle(category.id)
-                            }
+                            onCheckedChange={() => handleCategoryToggle(category.id)}
                           />
                           <Label
                             htmlFor={`category-${category.id}`}
@@ -740,9 +676,7 @@ export default function EditBookPage() {
                     {selectedCategories.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-3">
                         {selectedCategories.map((categoryId) => {
-                          const category = categories.find(
-                            (c) => c.id === categoryId,
-                          );
+                          const category = categories.find((c) => c.id === categoryId);
                           return category ? (
                             <Badge key={categoryId} variant="secondary">
                               {category.name}
@@ -767,18 +701,13 @@ export default function EditBookPage() {
                   {/* Library Information */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">
-                        Información de biblioteca
-                      </h3>
+                      <h3 className="font-semibold text-gray-900">Información de biblioteca</h3>
                       <div className="h-px bg-gray-200 flex-1"></div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="status"
-                          className="text-sm font-medium text-gray-900"
-                        >
+                        <Label htmlFor="status" className="text-sm font-medium text-gray-900">
                           Estado
                         </Label>
                         <Select
@@ -787,29 +716,19 @@ export default function EditBookPage() {
                             setFormData((prev) => ({ ...prev, status: value }))
                           }
                         >
-                          <SelectTrigger
-                            id="status"
-                            className="focus:ring-2 focus:ring-blue-500"
-                          >
+                          <SelectTrigger id="status" className="focus:ring-2 focus:ring-blue-500">
                             <SelectValue placeholder="Selecciona estado" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="available">
-                              Disponible
-                            </SelectItem>
+                            <SelectItem value="available">Disponible</SelectItem>
                             <SelectItem value="borrowed">Prestado</SelectItem>
-                            <SelectItem value="maintenance">
-                              En mantenimiento
-                            </SelectItem>
+                            <SelectItem value="maintenance">En mantenimiento</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="location"
-                          className="text-sm font-medium text-gray-900"
-                        >
+                        <Label htmlFor="location" className="text-sm font-medium text-gray-900">
                           Ubicación en biblioteca
                         </Label>
                         <Input
@@ -828,10 +747,7 @@ export default function EditBookPage() {
 
                   {/* Description */}
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="description"
-                      className="text-sm font-medium text-gray-900"
-                    >
+                    <Label htmlFor="description" className="text-sm font-medium text-gray-900">
                       Descripción
                     </Label>
                     <Textarea
@@ -861,11 +777,7 @@ export default function EditBookPage() {
                       <Button type="button" variant="outline" asChild>
                         <Link href="/">Cancelar</Link>
                       </Button>
-                      <Button
-                        type="submit"
-                        disabled={submitting}
-                        className="min-w-[120px]"
-                      >
+                      <Button type="submit" disabled={submitting} className="min-w-[120px]">
                         {submitting ? (
                           <>
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -896,9 +808,8 @@ export default function EditBookPage() {
               Confirmar eliminación
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600">
-              ¿Estás seguro de que quieres eliminar este libro? Esta acción no
-              se puede deshacer y eliminará permanentemente el libro de la
-              colección junto con todas sus imágenes.
+              ¿Estás seguro de que quieres eliminar este libro? Esta acción no se puede deshacer y
+              eliminará permanentemente el libro de la colección junto con todas sus imágenes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">

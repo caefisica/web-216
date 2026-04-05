@@ -10,20 +10,11 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
     headers: await headers(),
   });
 
-  const [book, categories] = await Promise.all([
-    getBookById(id),
-    getCategories(),
-  ]);
+  const [book, categories] = await Promise.all([getBookById(id), getCategories()]);
 
   if (!book) {
     return <NotFoundState />;
   }
 
-  return (
-    <BookClient
-      initialBook={book}
-      categories={categories}
-      user={session?.user}
-    />
-  );
+  return <BookClient initialBook={book} categories={categories} user={session?.user} />;
 }

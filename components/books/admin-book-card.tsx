@@ -111,9 +111,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
   };
 
   const categoriesToDisplay = getCategoriesToDisplay();
-  const remainingCategoriesCount = book.categories
-    ? Math.max(0, book.categories.length - 2)
-    : 0;
+  const remainingCategoriesCount = book.categories ? Math.max(0, book.categories.length - 2) : 0;
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
@@ -135,8 +133,8 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>Eliminar libro</AlertDialogTitle>
                 <AlertDialogDescription>
-                  ¿Está seguro de que desea eliminar &quot;{book.title}&quot;?
-                  Esta acción no se puede deshacer.
+                  ¿Está seguro de que desea eliminar &quot;{book.title}&quot;? Esta acción no se
+                  puede deshacer.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -168,9 +166,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
 
           {/* Status Badge */}
           <div className="absolute top-2 left-2">
-            <Badge
-              className={`text-xs font-medium ${getStatusColor(book.status)}`}
-            >
+            <Badge className={`text-xs font-medium ${getStatusColor(book.status)}`}>
               {getStatusText(book.status)}
             </Badge>
           </div>
@@ -178,10 +174,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
           {/* Hearts Count */}
           {heartsCount > 0 && (
             <div className="absolute bottom-2 left-2">
-              <Badge
-                variant="secondary"
-                className="text-xs bg-white/90 text-gray-700"
-              >
+              <Badge variant="secondary" className="text-xs bg-white/90 text-gray-700">
                 <Heart className="h-3 w-3 mr-1 fill-red-500 text-red-500" />
                 {heartsCount}
               </Badge>
@@ -191,10 +184,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
           {/* Multiple Images Indicator */}
           {book.images && book.images.length > 1 && (
             <div className="absolute bottom-2 right-2">
-              <Badge
-                variant="secondary"
-                className="text-xs bg-black/70 text-white"
-              >
+              <Badge variant="secondary" className="text-xs bg-black/70 text-white">
                 +{book.images.length - 1}
               </Badge>
             </div>
@@ -212,11 +202,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
             {categoriesToDisplay.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {categoriesToDisplay.map((category) => (
-                  <Badge
-                    key={category.id}
-                    variant="outline"
-                    className="text-xs"
-                  >
+                  <Badge key={category.id} variant="outline" className="text-xs">
                     {category.name}
                   </Badge>
                 ))}
@@ -229,9 +215,7 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
             )}
 
             {book.publication_year && (
-              <p className="text-xs text-gray-500">
-                Publicado: {book.publication_year}
-              </p>
+              <p className="text-xs text-gray-500">Publicado: {book.publication_year}</p>
             )}
           </div>
         </CardContent>

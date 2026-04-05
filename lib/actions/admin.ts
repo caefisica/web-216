@@ -26,15 +26,27 @@ export async function getAdminStats() {
     activeUsers,
   ] = await Promise.all([
     db.select({ count: sql<number>`count(*)` }).from(books),
-    db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, "available")),
-    db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, "borrowed")),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(books)
+      .where(eq(books.status, "available")),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(books)
+      .where(eq(books.status, "borrowed")),
     db.select({ count: sql<number>`count(*)` }).from(user),
-    db.select({ count: sql<number>`count(*)` }).from(borrowRequests).where(eq(borrowRequests.status, "pending")),
-    db.select({ count: sql<number>`count(*)` }).from(borrowRequests).where(eq(borrowRequests.status, "approved")),
-    db.select({ count: sql<number>`count(*)` }).from(user).where(gte(
-      user.updatedAt, 
-      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-    )),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(borrowRequests)
+      .where(eq(borrowRequests.status, "pending")),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(borrowRequests)
+      .where(eq(borrowRequests.status, "approved")),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(user)
+      .where(gte(user.updatedAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))),
   ]);
 
   return {
@@ -70,7 +82,7 @@ export async function getPendingBorrowRequests() {
         name: user.name,
         email: user.email,
         image: user.image,
-      }
+      },
     })
     .from(borrowRequests)
     .innerJoin(books, eq(borrowRequests.bookId, books.id))
@@ -78,11 +90,11 @@ export async function getPendingBorrowRequests() {
     .where(eq(borrowRequests.status, "pending"))
     .orderBy(desc(borrowRequests.requestDate));
 
-  return requests.map(r => ({
+  return requests.map((r) => ({
     ...r,
     request_date: r.requestDate,
     book_id: r.bookId,
-    user_id: r.userId
+    user_id: r.userId,
   }));
 }
 
@@ -97,55 +109,67 @@ export async function getDetailedAdminStats() {
   }
 
   // 1. Fetch Popular Books (Calculate scores)
-  const bookActivity = await db.select({
-    id: books.id,
-    title: books.title,
-    author: books.author,
-    status: books.status,
-    borrowCount: sql<number>`(SELECT count(*) FROM ${borrowRequests} WHERE ${borrowRequests.bookId} = ${books.id} AND ${borrowRequests.status} = 'approved')`.mapWith(Number),
-    heartsCount: sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(Number),
-  })
-  .from(books);
+  const bookActivity = await db
+    .select({
+      id: books.id,
+      title: books.title,
+      author: books.author,
+      status: books.status,
+      borrowCount:
+        sql<number>`(SELECT count(*) FROM ${borrowRequests} WHERE ${borrowRequests.bookId} = ${books.id} AND ${borrowRequests.status} = 'approved')`.mapWith(
+          Number,
+        ),
+      heartsCount:
+        sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(
+          Number,
+        ),
+    })
+    .from(books);
 
   const popularBooks = bookActivity
-    .map(book => ({
+    .map((book) => ({
       ...book,
-      popularity_score: (book.borrowCount * 3) + (book.heartsCount * 1),
+      popularity_score: book.borrowCount * 3 + book.heartsCount * 1,
       borrow_count: book.borrowCount,
       hearts_count: book.heartsCount,
     }))
-    .filter(book => book.popularity_score > 0)
+    .filter((book) => book.popularity_score > 0)
     .sort((a, b) => b.popularity_score - a.popularity_score);
 
   // 2. Fetch Active Users
-  const activeUsers = await db.select({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    borrow_count: sql<number>`(SELECT count(*) FROM ${borrowRequests} WHERE ${borrowRequests.userId} = ${user.id} AND ${borrowRequests.status} = 'approved')`.mapWith(Number),
-  })
-  .from(user)
-  .orderBy(sql`borrow_count DESC`)
-  .limit(20);
+  const activeUsers = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      borrow_count:
+        sql<number>`(SELECT count(*) FROM ${borrowRequests} WHERE ${borrowRequests.userId} = ${user.id} AND ${borrowRequests.status} = 'approved')`.mapWith(
+          Number,
+        ),
+    })
+    .from(user)
+    .orderBy(sql`borrow_count DESC`)
+    .limit(20);
 
   // 3. Monthly Trends (Last 6 months)
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
   sixMonthsAgo.setDate(1);
 
-  const monthlyActivity = await db.select({
-    month: sql<string>`TO_CHAR(${borrowRequests.requestDate}, 'YYYY-MM')`,
-    borrows: sql<number>`COUNT(*) FILTER (WHERE ${borrowRequests.status} = 'approved')`,
-    returns: sql<number>`COUNT(*) FILTER (WHERE ${borrowRequests.returnDate} IS NOT NULL)`,
-  })
-  .from(borrowRequests)
-  .where(gte(borrowRequests.requestDate, sixMonthsAgo))
-  .groupBy(sql`TO_CHAR(${borrowRequests.requestDate}, 'YYYY-MM')`)
-  .orderBy(sql`month ASC`);
+  const monthlyActivity = await db
+    .select({
+      month: sql<string>`TO_CHAR(${borrowRequests.requestDate}, 'YYYY-MM')`,
+      borrows: sql<number>`COUNT(*) FILTER (WHERE ${borrowRequests.status} = 'approved')`,
+      returns: sql<number>`COUNT(*) FILTER (WHERE ${borrowRequests.returnDate} IS NOT NULL)`,
+    })
+    .from(borrowRequests)
+    .where(gte(borrowRequests.requestDate, sixMonthsAgo))
+    .groupBy(sql`TO_CHAR(${borrowRequests.requestDate}, 'YYYY-MM')`)
+    .orderBy(sql`month ASC`);
 
   // Map to local Spanish months
-  const monthlyData = monthlyActivity.map(m => {
+  const monthlyData = monthlyActivity.map((m) => {
     const d = new Date(m.month + "-01");
     return {
       month: d.toLocaleDateString("es-ES", { month: "long", year: "numeric" }),
@@ -157,18 +181,22 @@ export async function getDetailedAdminStats() {
 
   return {
     popularBooks,
-    activeUsers: activeUsers.filter(u => u.borrow_count > 0),
+    activeUsers: activeUsers.filter((u) => u.borrow_count > 0),
     monthlyData,
     overallStats: {
       totalBorrows: popularBooks.reduce((sum, b) => sum + b.borrow_count, 0),
       totalReturns: monthlyData.reduce((sum, m) => sum + m.returns, 0),
-      bookUtilizationRate: popularBooks.length > 0 
-        ? Math.round((popularBooks.reduce((sum, b) => sum + b.borrow_count, 0) / popularBooks.length) * 10) / 10 
-        : 0,
-      mostActiveMonth: monthlyData.length > 0 
-        ? monthlyData.reduce((max, m) => (m.borrows > max.borrows ? m : max)).month 
-        : "N/A",
-    }
+      bookUtilizationRate:
+        popularBooks.length > 0
+          ? Math.round(
+              (popularBooks.reduce((sum, b) => sum + b.borrow_count, 0) / popularBooks.length) * 10,
+            ) / 10
+          : 0,
+      mostActiveMonth:
+        monthlyData.length > 0
+          ? monthlyData.reduce((max, m) => (m.borrows > max.borrows ? m : max)).month
+          : "N/A",
+    },
   };
 }
 
@@ -182,26 +210,27 @@ export async function getBorrowingHistory(limit = 50) {
     throw new Error("Unauthorized");
   }
 
-  const results = await db.select({
-    id: borrowRequests.id,
-    status: borrowRequests.status,
-    request_date: borrowRequests.requestDate,
-    approved_date: borrowRequests.approvedDate,
-    returned_date: borrowRequests.returnDate,
-    book: {
-      title: books.title
-    },
-    user: {
-      name: user.name
-    }
-  })
-  .from(borrowRequests)
-  .leftJoin(books, eq(borrowRequests.bookId, books.id))
-  .leftJoin(user, eq(borrowRequests.userId, user.id))
-  .orderBy(desc(borrowRequests.requestDate))
-  .limit(limit);
+  const results = await db
+    .select({
+      id: borrowRequests.id,
+      status: borrowRequests.status,
+      request_date: borrowRequests.requestDate,
+      approved_date: borrowRequests.approvedDate,
+      returned_date: borrowRequests.returnDate,
+      book: {
+        title: books.title,
+      },
+      user: {
+        name: user.name,
+      },
+    })
+    .from(borrowRequests)
+    .leftJoin(books, eq(borrowRequests.bookId, books.id))
+    .leftJoin(user, eq(borrowRequests.userId, user.id))
+    .orderBy(desc(borrowRequests.requestDate))
+    .limit(limit);
 
-  return results.map(r => ({
+  return results.map((r) => ({
     ...r,
     request_date: r.request_date?.toISOString(),
     approved_date: r.approved_date?.toISOString(),
@@ -231,19 +260,17 @@ export async function updateBorrowStatus(requestId: string, status: "approved" |
   }
 
   // 1. Update the request
-  const [request] = await db.update(borrowRequests)
+  const [request] = await db
+    .update(borrowRequests)
     .set(updateData)
     .where(eq(borrowRequests.id, requestId))
     .returning();
 
   // 2. If approved, update book status to borrowed
   if (status === "approved" && request) {
-    await db.update(books)
-      .set({ status: "borrowed" })
-      .where(eq(books.id, request.bookId));
+    await db.update(books).set({ status: "borrowed" }).where(eq(books.id, request.bookId));
   }
 
   revalidatePath("/");
   return { success: true };
 }
-

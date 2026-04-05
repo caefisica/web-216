@@ -48,22 +48,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <body className={inter.className}>
         <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              <ViewTransition name="test">{children}</ViewTransition>
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
+          <Header />
+          <main className="flex-1">
+            <ViewTransition name="test">{children}</ViewTransition>
+          </main>
+          <Footer />
+        </div>
+        <Toaster />
       </body>
     </html>
   );

@@ -1,4 +1,14 @@
-import { pgTable, text, integer, timestamp, boolean, uuid, numeric, primaryKey, check } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  integer,
+  timestamp,
+  boolean,
+  uuid,
+  numeric,
+  primaryKey,
+  check,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 // --- BETTER AUTH TABLES ---
@@ -24,14 +34,18 @@ export const session = pgTable("session", {
   updatedAt: timestamp("updated_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
 });
 
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
@@ -61,48 +75,70 @@ export const categories = pgTable("categories", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const books = pgTable("books", {
-  id: uuid("id").primaryKey().defaultRandom().notNull(),
-  title: text("title").notNull(),
-  author: text("author").notNull(),
-  isbn: text("isbn").unique(),
-  description: text("description"),
-  imageUrl: text("image_url"),
-  categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
-  status: text("status").default("available").notNull(),
-  publicationYear: integer("publication_year"),
-  publisher: text("publisher"),
-  pages: integer("pages"),
-  location: text("location"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  statusCheck: check("status_check", sql`${table.status} IN ('available', 'borrowed', 'maintenance')`),
-}));
+export const books = pgTable(
+  "books",
+  {
+    id: uuid("id").primaryKey().defaultRandom().notNull(),
+    title: text("title").notNull(),
+    author: text("author").notNull(),
+    isbn: text("isbn").unique(),
+    description: text("description"),
+    imageUrl: text("image_url"),
+    categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
+    status: text("status").default("available").notNull(),
+    publicationYear: integer("publication_year"),
+    publisher: text("publisher"),
+    pages: integer("pages"),
+    location: text("location"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    statusCheck: check(
+      "status_check",
+      sql`${table.status} IN ('available', 'borrowed', 'maintenance')`,
+    ),
+  }),
+);
 
 export const userBookHearts = pgTable("user_book_hearts", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  bookId: uuid("book_id").notNull().references(() => books.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  bookId: uuid("book_id")
+    .notNull()
+    .references(() => books.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const borrowRequests = pgTable("borrow_requests", {
-  id: uuid("id").primaryKey().defaultRandom().notNull(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  bookId: uuid("book_id").notNull().references(() => books.id, { onDelete: "cascade" }),
-  requestDate: timestamp("request_date", { withTimezone: true }).defaultNow().notNull(),
-  status: text("status").default("pending").notNull(),
-  librarianId: text("librarian_id").references(() => user.id, { onDelete: "set null" }),
-  approvedDate: timestamp("approved_date", { withTimezone: true }),
-  dueDate: timestamp("due_date", { withTimezone: true }),
-  returnDate: timestamp("return_date", { withTimezone: true }),
-  notes: text("notes"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  statusCheck: check("status_check", sql`${table.status} IN ('pending', 'approved', 'rejected', 'returned')`),
-}));
+export const borrowRequests = pgTable(
+  "borrow_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom().notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    bookId: uuid("book_id")
+      .notNull()
+      .references(() => books.id, { onDelete: "cascade" }),
+    requestDate: timestamp("request_date", { withTimezone: true }).defaultNow().notNull(),
+    status: text("status").default("pending").notNull(),
+    librarianId: text("librarian_id").references(() => user.id, { onDelete: "set null" }),
+    approvedDate: timestamp("approved_date", { withTimezone: true }),
+    dueDate: timestamp("due_date", { withTimezone: true }),
+    returnDate: timestamp("return_date", { withTimezone: true }),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    statusCheck: check(
+      "status_check",
+      sql`${table.status} IN ('pending', 'approved', 'rejected', 'returned')`,
+    ),
+  }),
+);
 
 export const donors = pgTable("donors", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -114,7 +150,9 @@ export const donors = pgTable("donors", {
 
 export const donations = pgTable("donations", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
-  donorId: uuid("donor_id").notNull().references(() => donors.id, { onDelete: "cascade" }),
+  donorId: uuid("donor_id")
+    .notNull()
+    .references(() => donors.id, { onDelete: "cascade" }),
   bookTitle: text("book_title").notNull(),
   bookAuthor: text("book_author").notNull(),
   donationDate: timestamp("donation_date", { withTimezone: true }).defaultNow().notNull(),
@@ -126,7 +164,9 @@ export const donations = pgTable("donations", {
 
 export const bookImages = pgTable("book_images", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
-  bookId: uuid("book_id").notNull().references(() => books.id, { onDelete: "cascade" }),
+  bookId: uuid("book_id")
+    .notNull()
+    .references(() => books.id, { onDelete: "cascade" }),
   imageUrl: text("image_url").notNull(),
   isCover: boolean("is_cover").default(false).notNull(),
   altText: text("alt_text"),
@@ -134,9 +174,17 @@ export const bookImages = pgTable("book_images", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const bookCategories = pgTable("book_categories", {
-  bookId: uuid("book_id").notNull().references(() => books.id, { onDelete: "cascade" }),
-  categoryId: uuid("category_id").notNull().references(() => categories.id, { onDelete: "cascade" }),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.bookId, table.categoryId] }),
-}));
+export const bookCategories = pgTable(
+  "book_categories",
+  {
+    bookId: uuid("book_id")
+      .notNull()
+      .references(() => books.id, { onDelete: "cascade" }),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.bookId, table.categoryId] }),
+  }),
+);

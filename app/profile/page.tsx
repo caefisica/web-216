@@ -7,29 +7,14 @@ import { authClient } from "@/lib/auth-client";
 import { getUserActivity, updateUserProfile } from "@/lib/actions/users";
 import type { Book } from "@/lib/types";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Mail,
-  Edit,
-  BookOpen,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Info,
-  Briefcase,
-} from "lucide-react";
+import { Mail, Edit, BookOpen, CheckCircle, XCircle, Clock, Info, Briefcase } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
@@ -141,7 +126,9 @@ export default function ProfilePage() {
     );
   }
 
-  const borrowedBooks = borrowHistory.filter(req => req.status === "approved" || req.status === "pending");
+  const borrowedBooks = borrowHistory.filter(
+    (req) => req.status === "approved" || req.status === "pending",
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -166,9 +153,7 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Detalles de cuenta</CardTitle>
-                <CardDescription>
-                  Ve y actualiza tu información personal.
-                </CardDescription>
+                <CardDescription>Ve y actualiza tu información personal.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -183,22 +168,14 @@ export default function ProfilePage() {
                       <Button onClick={handleNameUpdate} size="sm">
                         Guardar
                       </Button>
-                      <Button
-                        onClick={() => setIsEditingName(false)}
-                        size="sm"
-                        variant="outline"
-                      >
+                      <Button onClick={() => setIsEditingName(false)} size="sm" variant="outline">
                         Cancelar
                       </Button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
                       <p className="text-gray-800">{user.name}</p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsEditingName(true)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setIsEditingName(true)}>
                         <Edit className="h-4 w-4 mr-2" /> Editar
                       </Button>
                     </div>
@@ -252,14 +229,15 @@ export default function ProfilePage() {
                       <li key={req.id} className="p-4 border rounded-lg bg-gray-50">
                         <div className="flex flex-col sm:row justify-between">
                           <div>
-                            <Link href={`/books/${req.book?.id}`} className="font-semibold hover:underline">
+                            <Link
+                              href={`/books/${req.book?.id}`}
+                              className="font-semibold hover:underline"
+                            >
                               {req.book?.title}
                             </Link>
                             <p className="text-sm text-gray-600">{req.book?.author}</p>
                           </div>
-                          <div className="mt-2 text-right">
-                            {getStatusBadge(req.status)}
-                          </div>
+                          <div className="mt-2 text-right">{getStatusBadge(req.status)}</div>
                         </div>
                         <div className="text-xs text-gray-500 mt-2">
                           Solicitado el {new Date(req.request_date).toLocaleDateString()}

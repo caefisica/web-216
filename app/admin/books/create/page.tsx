@@ -60,10 +60,7 @@ export default function NewBookPage() {
   });
 
   useEffect(() => {
-    if (
-      !authLoading &&
-      (!user || (user.role !== "librarian" && user.role !== "admin"))
-    ) {
+    if (!authLoading && (!user || (user.role !== "librarian" && user.role !== "admin"))) {
       router.push("/");
     }
   }, [user, authLoading, router]);
@@ -122,18 +119,14 @@ export default function NewBookPage() {
     multiple: true,
   });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId],
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
     );
   };
 
@@ -148,15 +141,11 @@ export default function NewBookPage() {
   };
 
   const setCoverImage = (imageId: string) => {
-    setImageUploads((prev) =>
-      prev.map((img) => ({ ...img, isCover: img.id === imageId })),
-    );
+    setImageUploads((prev) => prev.map((img) => ({ ...img, isCover: img.id === imageId })));
   };
 
   const updateImageAltText = (imageId: string, altText: string) => {
-    setImageUploads((prev) =>
-      prev.map((img) => (img.id === imageId ? { ...img, altText } : img)),
-    );
+    setImageUploads((prev) => prev.map((img) => (img.id === imageId ? { ...img, altText } : img)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -188,16 +177,16 @@ export default function NewBookPage() {
       for (const imgUpload of imageUploads) {
         const formData = new FormData();
         formData.append("file", imgUpload.file);
-        
+
         const result = await uploadBookImage(formData);
         if (!result.success || !result.url) {
           throw new Error("Error uploading images");
         }
-        
+
         uploadedImages.push({
           url: result.url,
           isCover: imgUpload.isCover,
-          altText: imgUpload.altText
+          altText: imgUpload.altText,
         });
       }
 
@@ -208,7 +197,7 @@ export default function NewBookPage() {
           publicationYear: formData.publication_year,
         },
         uploadedImages,
-        selectedCategories
+        selectedCategories,
       );
 
       if (result.success) {
@@ -244,9 +233,7 @@ export default function NewBookPage() {
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Añadir nuevo libro
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Añadir nuevo libro</h1>
             <p className="text-lg text-gray-600">
               Añade un nuevo libro a la colección de la biblioteca
             </p>
@@ -306,12 +293,7 @@ export default function NewBookPage() {
                               <Input
                                 placeholder="Texto alternativo (opcional)"
                                 value={imageUpload.altText}
-                                onChange={(e) =>
-                                  updateImageAltText(
-                                    imageUpload.id,
-                                    e.target.value,
-                                  )
-                                }
+                                onChange={(e) => updateImageAltText(imageUpload.id, e.target.value)}
                                 className="text-xs"
                               />
                               <div className="flex gap-2">
@@ -320,9 +302,7 @@ export default function NewBookPage() {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() =>
-                                      setCoverImage(imageUpload.id)
-                                    }
+                                    onClick={() => setCoverImage(imageUpload.id)}
                                     className="text-xs"
                                   >
                                     <Star className="h-3 w-3 mr-1" />
@@ -359,15 +339,11 @@ export default function NewBookPage() {
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">
-                    Información del libro
-                  </CardTitle>
+                  <CardTitle className="text-lg">Información del libro</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900">
-                      Información básica
-                    </h3>
+                    <h3 className="font-medium text-gray-900">Información básica</h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -411,10 +387,7 @@ export default function NewBookPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="publisher"
-                          className="text-sm font-medium"
-                        >
+                        <Label htmlFor="publisher" className="text-sm font-medium">
                           Editorial
                         </Label>
                         <Input
@@ -428,10 +401,7 @@ export default function NewBookPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="publication_year"
-                          className="text-sm font-medium"
-                        >
+                        <Label htmlFor="publication_year" className="text-sm font-medium">
                           Año
                         </Label>
                         <Input
@@ -464,16 +434,11 @@ export default function NewBookPage() {
                     <h3 className="font-medium text-gray-900">Categorías</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {categories.map((category) => (
-                        <div
-                          key={category.id}
-                          className="flex items-center space-x-2"
-                        >
+                        <div key={category.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`category-${category.id}`}
                             checked={selectedCategories.includes(category.id)}
-                            onCheckedChange={() =>
-                              handleCategoryToggle(category.id)
-                            }
+                            onCheckedChange={() => handleCategoryToggle(category.id)}
                           />
                           <Label
                             htmlFor={`category-${category.id}`}
@@ -489,9 +454,7 @@ export default function NewBookPage() {
                   <Separator />
 
                   <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900">
-                      Ubicación y Estado
-                    </h3>
+                    <h3 className="font-medium text-gray-900">Ubicación y Estado</h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -516,10 +479,7 @@ export default function NewBookPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="location"
-                          className="text-sm font-medium"
-                        >
+                        <Label htmlFor="location" className="text-sm font-medium">
                           Ubicación
                         </Label>
                         <Input
@@ -533,10 +493,7 @@ export default function NewBookPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="description"
-                      className="text-sm font-medium"
-                    >
+                    <Label htmlFor="description" className="text-sm font-medium">
                       Descripción
                     </Label>
                     <Textarea

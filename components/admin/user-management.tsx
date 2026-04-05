@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import {
-  getAllUsers,
-  updateUserRole,
-  suspendUser,
-} from "@/lib/actions/users";
+import { getAllUsers, updateUserRole, suspendUser } from "@/lib/actions/users";
 import type { User } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -124,14 +120,12 @@ export function UserManagement() {
   const handleInviteUser = async () => {
     toast({
       title: "Próximamente",
-      description: "El sistema de invitaciones se está migrando a Better Auth. Por ahora, los usuarios pueden registrarse directamente.",
+      description:
+        "El sistema de invitaciones se está migrando a Better Auth. Por ahora, los usuarios pueden registrarse directamente.",
     });
   };
 
-  const handleRoleChange = async (
-    userId: string,
-    newRole: "user" | "librarian" | "admin",
-  ) => {
+  const handleRoleChange = async (userId: string, newRole: "user" | "librarian" | "admin") => {
     try {
       const result = await updateUserRole(userId, newRole);
 
@@ -266,12 +260,8 @@ export function UserManagement() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Gestión de usuarios
-          </h2>
-          <p className="text-gray-600">
-            Administra roles y permisos de usuarios
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900">Gestión de usuarios</h2>
+          <p className="text-gray-600">Administra roles y permisos de usuarios</p>
         </div>
 
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
@@ -289,8 +279,7 @@ export function UserManagement() {
             <DialogHeader>
               <DialogTitle>Invitar nuevo usuario</DialogTitle>
               <DialogDescription>
-                Envía una invitación segura para que el usuario configure su
-                propia contraseña.
+                Envía una invitación segura para que el usuario configure su propia contraseña.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -299,9 +288,7 @@ export function UserManagement() {
                 <Input
                   id="invite-name"
                   value={inviteForm.name}
-                  onChange={(e) =>
-                    setInviteForm((prev) => ({ ...prev, name: e.target.value }))
-                  }
+                  onChange={(e) => setInviteForm((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Ej: Juan Pérez"
                   className="w-full"
                 />
@@ -354,13 +341,10 @@ export function UserManagement() {
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-green-900">
-                      Invitación segura
-                    </p>
+                    <p className="font-medium text-green-900">Invitación segura</p>
                     <p className="text-green-700 mt-1">
-                      Se enviará un enlace seguro para que el usuario configure
-                      su propia contraseña. No se comparten credenciales por
-                      correo.
+                      Se enviará un enlace seguro para que el usuario configure su propia
+                      contraseña. No se comparten credenciales por correo.
                     </p>
                   </div>
                 </div>
@@ -377,9 +361,7 @@ export function UserManagement() {
               </Button>
               <Button
                 onClick={handleInviteUser}
-                disabled={
-                  inviteLoading || !inviteForm.name || !inviteForm.email
-                }
+                disabled={inviteLoading || !inviteForm.name || !inviteForm.email}
                 className="w-full sm:w-auto"
               >
                 {inviteLoading ? (
@@ -407,9 +389,7 @@ export function UserManagement() {
               <CheckCircle className="h-5 w-5 text-green-600" />
               Usuario creado exitosamente
             </DialogTitle>
-            <DialogDescription>
-              El usuario ha sido invitado al sistema.
-            </DialogDescription>
+            <DialogDescription>El usuario ha sido invitado al sistema.</DialogDescription>
           </DialogHeader>
           {lastInviteResult && (
             <div className="space-y-4 py-4">
@@ -441,9 +421,7 @@ export function UserManagement() {
               {/* Manual setup link if email failed */}
               {!lastInviteResult.emailSent && lastInviteResult.setupUrl && (
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Enlace de configuración manual
-                  </Label>
+                  <Label className="text-sm font-medium">Enlace de configuración manual</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       value={lastInviteResult.setupUrl}
@@ -453,17 +431,14 @@ export function UserManagement() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() =>
-                        copyToClipboard(lastInviteResult.setupUrl!)
-                      }
+                      onClick={() => copyToClipboard(lastInviteResult.setupUrl!)}
                       className="flex-shrink-0"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
                   <p className="text-xs text-gray-600">
-                    Comparte este enlace con el usuario para que configure su
-                    contraseña
+                    Comparte este enlace con el usuario para que configure su contraseña
                   </p>
                 </div>
               )}
@@ -489,10 +464,7 @@ export function UserManagement() {
             </div>
           )}
           <DialogFooter>
-            <Button
-              onClick={() => setShowInviteResult(false)}
-              className="w-full sm:w-auto"
-            >
+            <Button onClick={() => setShowInviteResult(false)} className="w-full sm:w-auto">
               Entendido
             </Button>
           </DialogFooter>
@@ -530,20 +502,13 @@ export function UserManagement() {
           <div className="text-gray-400 mb-4">
             <Filter className="h-12 w-12 mx-auto" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No se encontraron usuarios
-          </h3>
-          <p className="text-gray-600">
-            Intenta ajustar tus criterios de búsqueda o filtro
-          </p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron usuarios</h3>
+          <p className="text-gray-600">Intenta ajustar tus criterios de búsqueda o filtro</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {filteredUsers.map((user) => (
-            <Card
-              key={user.id}
-              className="hover:shadow-md transition-shadow duration-200"
-            >
+            <Card key={user.id} className="hover:shadow-md transition-shadow duration-200">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
@@ -557,13 +522,8 @@ export function UserManagement() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base lg:text-lg truncate">
-                        {user.name}
-                      </CardTitle>
-                      <p
-                        className="text-sm text-gray-600 truncate"
-                        title={user.email}
-                      >
+                      <CardTitle className="text-base lg:text-lg truncate">{user.name}</CardTitle>
+                      <p className="text-sm text-gray-600 truncate" title={user.email}>
                         {user.email}
                       </p>
                     </div>
@@ -573,19 +533,14 @@ export function UserManagement() {
                     className="flex items-center gap-1 flex-shrink-0"
                   >
                     {getRoleIcon(user.role)}
-                    <span className="hidden sm:inline">
-                      {getRoleText(user.role)}
-                    </span>
+                    <span className="hidden sm:inline">{getRoleText(user.role)}</span>
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="text-sm text-gray-600">
-                    <p>
-                      Se unió:{" "}
-                      {new Date(user.created_at).toLocaleDateString("es-ES")}
-                    </p>
+                    <p>Se unió: {new Date(user.created_at).toLocaleDateString("es-ES")}</p>
                     <p>Donaciones: ${user.total_donations || 0}</p>
                   </div>
 
@@ -636,19 +591,15 @@ export function UserManagement() {
                           </AlertDialogTrigger>
                           <AlertDialogContent className="sm:max-w-[425px]">
                             <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Suspender usuario
-                              </AlertDialogTitle>
+                              <AlertDialogTitle>Suspender usuario</AlertDialogTitle>
                               <AlertDialogDescription>
-                                ¿Estás seguro de que quieres suspender a{" "}
-                                {user.name}? Perderán acceso al sistema.
+                                ¿Estás seguro de que quieres suspender a {user.name}? Perderán
+                                acceso al sistema.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleSuspendUser(user.id)}
-                              >
+                              <AlertDialogAction onClick={() => handleSuspendUser(user.id)}>
                                 Suspender usuario
                               </AlertDialogAction>
                             </AlertDialogFooter>

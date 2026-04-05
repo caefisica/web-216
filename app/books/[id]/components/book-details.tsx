@@ -1,20 +1,8 @@
 import { Separator } from "@/components/ui/separator";
-import {
-  Hash,
-  Building,
-  Calendar,
-  BookOpen,
-  MapPin,
-  FileText,
-} from "lucide-react";
+import { Hash, Building, Calendar, BookOpen, MapPin, FileText } from "lucide-react";
 import type { BookWithRelations, BookInfoItemProps } from "../types/book-types";
 
-function BookInfoItem({
-  icon: Icon,
-  label,
-  value,
-  className,
-}: BookInfoItemProps) {
+function BookInfoItem({ icon: Icon, label, value, className }: BookInfoItemProps) {
   return (
     <div className={`flex items-center ${className || ""}`}>
       <Icon className="h-4 w-4 mr-3 text-gray-400" />
@@ -51,15 +39,9 @@ export function BookDetails({ book }: BookDetailsProps) {
       <div>
         <h3 className="text-lg font-semibold mb-4">Información del libro</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {book.isbn && (
-            <BookInfoItem icon={Hash} label="ISBN" value={book.isbn} />
-          )}
+          {book.isbn && <BookInfoItem icon={Hash} label="ISBN" value={book.isbn} />}
           {book.publisher && (
-            <BookInfoItem
-              icon={Building}
-              label="Editorial"
-              value={book.publisher}
-            />
+            <BookInfoItem icon={Building} label="Editorial" value={book.publisher} />
           )}
           {book.publication_year && (
             <BookInfoItem
@@ -69,11 +51,7 @@ export function BookDetails({ book }: BookDetailsProps) {
             />
           )}
           {book.pages && (
-            <BookInfoItem
-              icon={BookOpen}
-              label="Páginas"
-              value={book.pages.toString()}
-            />
+            <BookInfoItem icon={BookOpen} label="Páginas" value={book.pages.toString()} />
           )}
           {book.location && (
             <BookInfoItem

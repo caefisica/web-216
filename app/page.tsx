@@ -14,20 +14,14 @@ export default async function HomePage() {
   const isAdmin = user && (userRole === "librarian" || userRole === "admin");
 
   // Fetch base data
-  const [initialBooks, initialCategories] = await Promise.all([
-    getBooks(),
-    getCategories(),
-  ]);
+  const [initialBooks, initialCategories] = await Promise.all([getBooks(), getCategories()]);
 
   // Fetch admin specific data if needed
   let initialStats = null;
   let initialRequests: any[] = [];
 
   if (isAdmin) {
-    const [stats, requests] = await Promise.all([
-      getAdminStats(),
-      getPendingBorrowRequests(),
-    ]);
+    const [stats, requests] = await Promise.all([getAdminStats(), getPendingBorrowRequests()]);
     initialStats = stats;
     initialRequests = requests;
   }

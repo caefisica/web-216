@@ -317,10 +317,7 @@ async function sendEmail(to: string, subject: string, html: string) {
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Error inesperado enviando correo",
+      error: error instanceof Error ? error.message : "Error inesperado enviando correo",
     };
   }
 }
@@ -330,8 +327,7 @@ export async function inviteUser(formData: FormData) {
     const email = formData.get("email") as string;
     const name = formData.get("name") as string;
     const role = formData.get("role") as "user" | "librarian";
-    const inviterName =
-      (formData.get("inviterName") as string) || "Administrador";
+    const inviterName = (formData.get("inviterName") as string) || "Administrador";
 
     if (!email || !name || !role) {
       return {
@@ -364,17 +360,16 @@ export async function inviteUser(formData: FormData) {
     }
 
     // Create user without password (they'll set it via the invite link)
-    const { data: authUser, error: authError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true,
-        user_metadata: {
-          name,
-          role,
-          invited: true,
-          invitation_pending: true,
-        },
-      });
+    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: {
+        name,
+        role,
+        invited: true,
+        invitation_pending: true,
+      },
+    });
 
     if (authError) {
       console.error("❌ Auth error:", authError);
@@ -414,14 +409,13 @@ export async function inviteUser(formData: FormData) {
     }
 
     // Generate password reset link for the user to set their password
-    const { data: resetData, error: resetError } =
-      await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email: email,
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/setup-password`,
-        },
-      });
+    const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email: email,
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/setup-password`,
+      },
+    });
 
     if (resetError) {
       return {
@@ -436,12 +430,7 @@ export async function inviteUser(formData: FormData) {
       `${process.env.NEXT_PUBLIC_SITE_URL}/auth/setup-password`;
 
     // Send secure invitation email
-    const emailHTML = createInvitationEmailHTML(
-      name,
-      inviterName,
-      role,
-      setupUrl,
-    );
+    const emailHTML = createInvitationEmailHTML(name, inviterName, role, setupUrl);
     const emailResult = await sendEmail(
       email,
       `🎉 ${inviterName} te ha invitado al Sistema de Biblioteca`,
@@ -449,10 +438,7 @@ export async function inviteUser(formData: FormData) {
     );
 
     if (!emailResult.success) {
-      console.warn(
-        "⚠️ Email sending failed, but user was created:",
-        emailResult.error,
-      );
+      console.warn("⚠️ Email sending failed, but user was created:", emailResult.error);
     }
 
     revalidatePath("/");

@@ -3,14 +3,7 @@
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
-import {
-  Star,
-  Upload,
-  Trash2,
-  X,
-  Loader2,
-  XCircle,
-} from "lucide-react";
+import { Star, Upload, Trash2, X, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -90,9 +83,9 @@ export function EditForm({
         try {
           const formData = new FormData();
           formData.append("file", file);
-          
+
           const result = await uploadBookImage(formData);
-          
+
           if (result.success) {
             setUploadedImages((prev) =>
               prev.map((img) =>
@@ -141,7 +134,10 @@ export function EditForm({
       <h3 className="text-lg font-semibold">Editar información del libro</h3>
 
       {/* Dropzone */}
-      <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${isDragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"}`}>
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${isDragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"}`}
+      >
         <input {...getInputProps()} />
         <div className="text-center">
           <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
@@ -152,7 +148,10 @@ export function EditForm({
       {/* New Images */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {uploadedImages.map((image) => (
-          <div key={image.id} className="relative aspect-square border rounded-lg overflow-hidden group">
+          <div
+            key={image.id}
+            className="relative aspect-square border rounded-lg overflow-hidden group"
+          >
             {image.isUploading ? (
               <div className="flex flex-col items-center justify-center h-full p-2">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400 mb-2" />
@@ -166,7 +165,11 @@ export function EditForm({
               <>
                 <Image src={image.url} alt="New" fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <Button size="sm" variant="destructive" onClick={() => handleRemoveUploadedImage(image.id)}>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleRemoveUploadedImage(image.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -179,17 +182,32 @@ export function EditForm({
       {/* Existing Images */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {existingImages.map((image) => (
-          <div key={image.id} className="relative aspect-square border rounded-lg overflow-hidden group">
+          <div
+            key={image.id}
+            className="relative aspect-square border rounded-lg overflow-hidden group"
+          >
             <Image src={image.image_url} alt="Existing" fill className="object-cover" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <Button size="sm" variant={image.is_cover ? "default" : "secondary"} onClick={() => onSetCover?.(image.id, true)}>
+              <Button
+                size="sm"
+                variant={image.is_cover ? "default" : "secondary"}
+                onClick={() => onSetCover?.(image.id, true)}
+              >
                 <Star className="h-4 w-4" />
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => onImageRemove?.(image.id, true)}>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => onImageRemove?.(image.id, true)}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-            {image.is_cover && <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-[10px] px-1.5 py-0.5 rounded">Portada</div>}
+            {image.is_cover && (
+              <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+                Portada
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -198,39 +216,68 @@ export function EditForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
           <Label>Título</Label>
-          <Input value={editForm.title || ""} onChange={(e) => onFormChange("title", e.target.value)} />
+          <Input
+            value={editForm.title || ""}
+            onChange={(e) => onFormChange("title", e.target.value)}
+          />
         </div>
         <div>
           <Label>Autor</Label>
-          <Input value={editForm.author || ""} onChange={(e) => onFormChange("author", e.target.value)} />
+          <Input
+            value={editForm.author || ""}
+            onChange={(e) => onFormChange("author", e.target.value)}
+          />
         </div>
         <div>
           <Label>ISBN</Label>
-          <Input value={editForm.isbn || ""} onChange={(e) => onFormChange("isbn", e.target.value)} />
+          <Input
+            value={editForm.isbn || ""}
+            onChange={(e) => onFormChange("isbn", e.target.value)}
+          />
         </div>
         <div>
           <Label>Editorial</Label>
-          <Input value={editForm.publisher || ""} onChange={(e) => onFormChange("publisher", e.target.value)} />
+          <Input
+            value={editForm.publisher || ""}
+            onChange={(e) => onFormChange("publisher", e.target.value)}
+          />
         </div>
         <div>
           <Label>Año de publicación</Label>
-          <Input type="number" value={editForm.publicationYear || ""} onChange={(e) => onFormChange("publicationYear", e.target.value)} />
+          <Input
+            type="number"
+            value={editForm.publicationYear || ""}
+            onChange={(e) => onFormChange("publicationYear", e.target.value)}
+          />
         </div>
         <div>
           <Label>Páginas</Label>
-          <Input type="number" value={editForm.pages || ""} onChange={(e) => onFormChange("pages", e.target.value)} />
+          <Input
+            type="number"
+            value={editForm.pages || ""}
+            onChange={(e) => onFormChange("pages", e.target.value)}
+          />
         </div>
         <div>
           <Label>Estado</Label>
-          <Input value={editForm.status || ""} onChange={(e) => onFormChange("status", e.target.value)} />
+          <Input
+            value={editForm.status || ""}
+            onChange={(e) => onFormChange("status", e.target.value)}
+          />
         </div>
         <div>
           <Label>Ubicación</Label>
-          <Input value={editForm.location || ""} onChange={(e) => onFormChange("location", e.target.value)} />
+          <Input
+            value={editForm.location || ""}
+            onChange={(e) => onFormChange("location", e.target.value)}
+          />
         </div>
         <div className="md:col-span-2">
           <Label>Descripción</Label>
-          <Textarea value={editForm.description || ""} onChange={(e) => onFormChange("description", e.target.value)} />
+          <Textarea
+            value={editForm.description || ""}
+            onChange={(e) => onFormChange("description", e.target.value)}
+          />
         </div>
       </div>
 
@@ -251,7 +298,11 @@ export function EditForm({
         </div>
       </div>
 
-      <Button className="w-full" onClick={() => onSave(uploadedImages)} disabled={saving || uploadedImages.some(i => i.isUploading)}>
+      <Button
+        className="w-full"
+        onClick={() => onSave(uploadedImages)}
+        disabled={saving || uploadedImages.some((i) => i.isUploading)}
+      >
         {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Guardar Libro"}
       </Button>
     </div>

@@ -58,15 +58,17 @@ export default function HomeClient({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState(initialStats || {
-    totalBooks: 0,
-    availableBooks: 0,
-    borrowedBooks: 0,
-    totalBorrows: 0,
-    activeUsers: 0,
-    pendingRequests: 0,
-    totalUsers: 0,
-  });
+  const [stats, setStats] = useState(
+    initialStats || {
+      totalBooks: 0,
+      availableBooks: 0,
+      borrowedBooks: 0,
+      totalBorrows: 0,
+      activeUsers: 0,
+      pendingRequests: 0,
+      totalUsers: 0,
+    },
+  );
 
   const isAdmin = user && (user.role === "librarian" || user.role === "admin");
 
@@ -90,10 +92,7 @@ export default function HomeClient({
     }
   }
 
-  const handleRequestAction = async (
-    requestId: string,
-    action: "approved" | "rejected",
-  ) => {
+  const handleRequestAction = async (requestId: string, action: "approved" | "rejected") => {
     try {
       await updateBorrowStatus(requestId, action);
       toast({
@@ -140,10 +139,7 @@ export default function HomeClient({
               </div>
 
               {isAdmin && (
-                <Button
-                  asChild
-                  className="transition-all duration-200 hover:scale-105"
-                >
+                <Button asChild className="transition-all duration-200 hover:scale-105">
                   <Link href="/admin/books/create">
                     <Plus className="h-4 w-4 mr-2" />
                     Añadir nuevo libro
@@ -214,10 +210,7 @@ export default function HomeClient({
             {!isAdmin && (
               <div className="flex gap-6">
                 <div className="flex items-center gap-2">
-                  <Badge
-                    variant="secondary"
-                    className="bg-gray-100 text-gray-700 text-sm"
-                  >
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-sm">
                     {books.length} libros en total
                   </Badge>
                   <Badge
@@ -249,10 +242,7 @@ export default function HomeClient({
               </div>
 
               <div className="flex gap-2">
-                <Select
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-                >
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-48 bg-white border-gray-200 text-sm">
                     <SelectValue placeholder="Todas las categorías" />
                   </SelectTrigger>
@@ -266,10 +256,7 @@ export default function HomeClient({
                   </SelectContent>
                 </Select>
 
-                <Select
-                  value={selectedStatus}
-                  onValueChange={setSelectedStatus}
-                >
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                   <SelectTrigger className="w-32 bg-white border-gray-200 text-sm">
                     <SelectValue placeholder="Estado" />
                   </SelectTrigger>
@@ -277,9 +264,7 @@ export default function HomeClient({
                     <SelectItem value="all">Todos los estados</SelectItem>
                     <SelectItem value="available">Disponible</SelectItem>
                     <SelectItem value="borrowed">Prestado</SelectItem>
-                    <SelectItem value="maintenance">
-                      En mantenimiento
-                    </SelectItem>
+                    <SelectItem value="maintenance">En mantenimiento</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -294,38 +279,23 @@ export default function HomeClient({
           /* Admin Interface */
           <Tabs defaultValue="books" className="space-y-6">
             <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger
-                value="books"
-                className="flex items-center gap-2 text-sm"
-              >
+              <TabsTrigger value="books" className="flex items-center gap-2 text-sm">
                 <BookOpen className="h-4 w-4" />
                 Libros
               </TabsTrigger>
-              <TabsTrigger
-                value="requests"
-                className="flex items-center gap-2 text-sm"
-              >
+              <TabsTrigger value="requests" className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4" />
                 Solicitudes ({stats.pendingRequests})
               </TabsTrigger>
-              <TabsTrigger
-                value="users"
-                className="flex items-center gap-2 text-sm"
-              >
+              <TabsTrigger value="users" className="flex items-center gap-2 text-sm">
                 <UserCog className="h-4 w-4" />
                 Usuarios
               </TabsTrigger>
-              <TabsTrigger
-                value="activity"
-                className="flex items-center gap-2 text-sm"
-              >
+              <TabsTrigger value="activity" className="flex items-center gap-2 text-sm">
                 <Activity className="h-4 w-4" />
                 Historial
               </TabsTrigger>
-              <TabsTrigger
-                value="stats"
-                className="flex items-center gap-2 text-sm"
-              >
+              <TabsTrigger value="stats" className="flex items-center gap-2 text-sm">
                 <BarChart3 className="h-4 w-4" />
                 Estadísticas
               </TabsTrigger>
@@ -348,11 +318,7 @@ export default function HomeClient({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {books.map((book: any) => (
-                    <AdminBookCard
-                      key={book.id}
-                      book={book}
-                      onUpdate={filterBooks}
-                    />
+                    <AdminBookCard key={book.id} book={book} onUpdate={filterBooks} />
                   ))}
                 </div>
               )}
@@ -371,9 +337,7 @@ export default function HomeClient({
                       <h3 className="text-lg font-medium text-gray-900 mb-2">
                         No hay solicitudes pendientes
                       </h3>
-                      <p className="text-gray-600">
-                        Todas las solicitudes han sido procesadas
-                      </p>
+                      <p className="text-gray-600">Todas las solicitudes han sido procesadas</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -383,35 +347,27 @@ export default function HomeClient({
                           className="border rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg">
-                              {request.book?.title}
-                            </h3>
+                            <h3 className="font-semibold text-lg">{request.book?.title}</h3>
                             <p className="text-gray-600">
                               Solicitado por:{" "}
-                                <span className="font-medium">
-                                  {request.user?.name}
-                                </span>{" "}
-                                ({request.user?.email})
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Fecha de solicitud:{" "}
-                                {new Date(
-                                  request.request_date,
-                                ).toLocaleDateString("es-ES", {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
+                              <span className="font-medium">{request.user?.name}</span> (
+                              {request.user?.email})
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Fecha de solicitud:{" "}
+                              {new Date(request.request_date).toLocaleDateString("es-ES", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
                           </div>
                           <div className="flex gap-2 ml-4">
                             <Button
                               size="sm"
-                              onClick={() =>
-                                handleRequestAction(request.id, "approved")
-                              }
+                              onClick={() => handleRequestAction(request.id, "approved")}
                               className="bg-green-600 hover:bg-green-700"
                             >
                               Aprobar
@@ -419,9 +375,7 @@ export default function HomeClient({
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() =>
-                                handleRequestAction(request.id, "rejected")
-                              }
+                              onClick={() => handleRequestAction(request.id, "rejected")}
                             >
                               Rechazar
                             </Button>
@@ -457,9 +411,7 @@ export default function HomeClient({
                 <div className="text-gray-400 mb-4">
                   <Filter className="h-12 w-12 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No se encontraron libros
-                </h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron libros</h3>
                 <p className="text-base text-gray-600">
                   Intenta ajustar tu búsqueda o criterios de filtro
                 </p>
@@ -467,11 +419,7 @@ export default function HomeClient({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {books.map((book: any) => (
-                  <BookCard
-                    key={book.id}
-                    book={book}
-                    onHeartChange={filterBooks}
-                  />
+                  <BookCard key={book.id} book={book} onHeartChange={filterBooks} />
                 ))}
               </div>
             )}

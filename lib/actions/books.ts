@@ -1,7 +1,14 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { books, categories, bookImages, bookCategories, userBookHearts, borrowRequests } from "@/lib/db/schema";
+import {
+  books,
+  categories,
+  bookImages,
+  bookCategories,
+  userBookHearts,
+  borrowRequests,
+} from "@/lib/db/schema";
 import { eq, ilike, or, and, sql, desc, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -17,24 +24,28 @@ export async function getBooks(filters?: {
     headers: await headers(),
   });
 
-  const query = db.select({
-    id: books.id,
-    title: books.title,
-    author: books.author,
-    isbn: books.isbn,
-    description: books.description,
-    imageUrl: books.imageUrl,
-    categoryId: books.categoryId,
-    status: books.status,
-    publicationYear: books.publicationYear,
-    publisher: books.publisher,
-    pages: books.pages,
-    location: books.location,
-    createdAt: books.createdAt,
-    updatedAt: books.updatedAt,
-    heartsCount: sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(Number),
-  })
-  .from(books);
+  const query = db
+    .select({
+      id: books.id,
+      title: books.title,
+      author: books.author,
+      isbn: books.isbn,
+      description: books.description,
+      imageUrl: books.imageUrl,
+      categoryId: books.categoryId,
+      status: books.status,
+      publicationYear: books.publicationYear,
+      publisher: books.publisher,
+      pages: books.pages,
+      location: books.location,
+      createdAt: books.createdAt,
+      updatedAt: books.updatedAt,
+      heartsCount:
+        sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(
+          Number,
+        ),
+    })
+    .from(books);
 
   const conditions = [];
 
@@ -43,8 +54,8 @@ export async function getBooks(filters?: {
       or(
         ilike(books.title, `%${filters.search}%`),
         ilike(books.author, `%${filters.search}%`),
-        ilike(books.description, `%${filters.search}%`)
-      )
+        ilike(books.description, `%${filters.search}%`),
+      ),
     );
   }
 
@@ -58,9 +69,14 @@ export async function getBooks(filters?: {
       .select({ bookId: bookCategories.bookId })
       .from(bookCategories)
       .where(eq(bookCategories.categoryId, filters.categoryId));
-    
+
     if (bookIds.length > 0) {
-      conditions.push(inArray(books.id, bookIds.map(b => b.bookId)));
+      conditions.push(
+        inArray(
+          books.id,
+          bookIds.map((b) => b.bookId),
+        ),
+      );
     } else {
       return []; // Return empty if no books in category
     }
@@ -73,7 +89,7 @@ export async function getBooks(filters?: {
   const booksData = await query.orderBy(desc(books.createdAt));
 
   // Fetch images and categories for these books
-  const bookIds = booksData.map(b => b.id);
+  const bookIds = booksData.map((b) => b.id);
   if (bookIds.length === 0) return [];
 
   const imagesData = await db
@@ -85,7 +101,7 @@ export async function getBooks(filters?: {
   const categoriesData = await db
     .select({
       bookId: bookCategories.bookId,
-      category: categories
+      category: categories,
     })
     .from(bookCategories)
     .innerJoin(categories, eq(bookCategories.categoryId, categories.id))
@@ -98,18 +114,18 @@ export async function getBooks(filters?: {
       .select({ bookId: userBookHearts.bookId })
       .from(userBookHearts)
       .where(eq(userBookHearts.userId, session.user.id));
-    heartedBookIds = hearts.map(h => h.bookId);
+    heartedBookIds = hearts.map((h) => h.bookId);
   }
 
   // Merge everything
-  return booksData.map(book => {
-    const bookImgs = imagesData.filter(img => img.bookId === book.id);
-    const bookCats = categoriesData.filter(bc => bc.bookId === book.id).map(bc => bc.category);
-    
+  return booksData.map((book) => {
+    const bookImgs = imagesData.filter((img) => img.bookId === book.id);
+    const bookCats = categoriesData.filter((bc) => bc.bookId === book.id).map((bc) => bc.category);
+
     return {
       ...book,
       images: bookImgs,
-      cover_image: bookImgs.find(img => img.isCover) || bookImgs[0],
+      cover_image: bookImgs.find((img) => img.isCover) || bookImgs[0],
       categories: bookCats,
       is_hearted: heartedBookIds.includes(book.id),
       // Map for frontend compatibility
@@ -128,26 +144,30 @@ export async function getBookById(id: string) {
     headers: await headers(),
   });
 
-  const booksData = await db.select({
-    id: books.id,
-    title: books.title,
-    author: books.author,
-    isbn: books.isbn,
-    description: books.description,
-    imageUrl: books.imageUrl,
-    categoryId: books.categoryId,
-    status: books.status,
-    publicationYear: books.publicationYear,
-    publisher: books.publisher,
-    pages: books.pages,
-    location: books.location,
-    createdAt: books.createdAt,
-    updatedAt: books.updatedAt,
-    heartsCount: sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(Number),
-  })
-  .from(books)
-  .where(eq(books.id, id))
-  .limit(1);
+  const booksData = await db
+    .select({
+      id: books.id,
+      title: books.title,
+      author: books.author,
+      isbn: books.isbn,
+      description: books.description,
+      imageUrl: books.imageUrl,
+      categoryId: books.categoryId,
+      status: books.status,
+      publicationYear: books.publicationYear,
+      publisher: books.publisher,
+      pages: books.pages,
+      location: books.location,
+      createdAt: books.createdAt,
+      updatedAt: books.updatedAt,
+      heartsCount:
+        sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(
+          Number,
+        ),
+    })
+    .from(books)
+    .where(eq(books.id, id))
+    .limit(1);
 
   if (booksData.length === 0) return null;
   const book = booksData[0];
@@ -160,7 +180,7 @@ export async function getBookById(id: string) {
 
   const categoriesData = await db
     .select({
-      category: categories
+      category: categories,
     })
     .from(bookCategories)
     .innerJoin(categories, eq(bookCategories.categoryId, categories.id))
@@ -171,10 +191,7 @@ export async function getBookById(id: string) {
     const heart = await db
       .select()
       .from(userBookHearts)
-      .where(and(
-        eq(userBookHearts.bookId, id),
-        eq(userBookHearts.userId, session.user.id)
-      ))
+      .where(and(eq(userBookHearts.bookId, id), eq(userBookHearts.userId, session.user.id)))
       .limit(1);
     isHearted = heart.length > 0;
   }
@@ -182,8 +199,8 @@ export async function getBookById(id: string) {
   return {
     ...book,
     images: imagesData,
-    cover_image: imagesData.find(img => img.isCover) || imagesData[0],
-    categories: categoriesData.map(c => c.category),
+    cover_image: imagesData.find((img) => img.isCover) || imagesData[0],
+    categories: categoriesData.map((c) => c.category),
     is_hearted: isHearted,
     // Compatibility fields
     created_at: book.createdAt,
@@ -204,17 +221,13 @@ export async function toggleHeart(bookId: string) {
   const existing = await db
     .select()
     .from(userBookHearts)
-    .where(and(
-      eq(userBookHearts.bookId, bookId),
-      eq(userBookHearts.userId, session.user.id)
-    ))
+    .where(and(eq(userBookHearts.bookId, bookId), eq(userBookHearts.userId, session.user.id)))
     .limit(1);
 
   if (existing.length > 0) {
-    await db.delete(userBookHearts).where(and(
-      eq(userBookHearts.bookId, bookId),
-      eq(userBookHearts.userId, session.user.id)
-    ));
+    await db
+      .delete(userBookHearts)
+      .where(and(eq(userBookHearts.bookId, bookId), eq(userBookHearts.userId, session.user.id)));
     return { hearted: false };
   } else {
     await db.insert(userBookHearts).values({
@@ -269,7 +282,7 @@ export async function uploadImage(formData: FormData) {
   // If the bucket is public, we can just return the URL
   // Assuming a public URL structure for now, or you might need a separate getPublicUrl utility
   const publicUrl = `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET_NAME}/${fileName}`;
-  
+
   return { url: publicUrl, key: fileName };
 }
 
@@ -309,10 +322,10 @@ export async function updateBookCategories(bookId: string, categoryIds: string[]
     await tx.delete(bookCategories).where(eq(bookCategories.bookId, bookId));
     if (categoryIds.length > 0) {
       await tx.insert(bookCategories).values(
-        categoryIds.map(catId => ({
+        categoryIds.map((catId) => ({
           bookId,
           categoryId: catId,
-        }))
+        })),
       );
     }
   });
@@ -334,7 +347,12 @@ export async function setBookCoverImage(bookId: string, imageId: string) {
   });
 }
 
-export async function addBookImage(bookId: string, imageUrl: string, isCover: boolean, displayOrder: number) {
+export async function addBookImage(
+  bookId: string,
+  imageUrl: string,
+  isCover: boolean,
+  displayOrder: number,
+) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -365,7 +383,7 @@ export async function deleteBook(bookId: string) {
 
   // 1. Get images to delete from S3
   const images = await db.select().from(bookImages).where(eq(bookImages.bookId, bookId));
-  
+
   for (const img of images) {
     // Only delete if it's a relative path in our storage
     if (img.imageUrl.includes("book-images") || img.imageUrl.includes("temp/")) {
@@ -391,7 +409,8 @@ export async function updateBook(bookId: string, data: any) {
     throw new Error("Unauthorized");
   }
 
-  await db.update(books)
+  await db
+    .update(books)
     .set({
       title: data.title,
       author: data.author,
@@ -445,17 +464,17 @@ export async function createBook(data: any, images: any[], categoriesList: strin
         imageUrl: img.url,
         isCover: img.isCover || index === 0,
         displayOrder: index,
-      }))
+      })),
     );
   }
 
   // 3. Add categories
   if (categoriesList && categoriesList.length > 0) {
     await db.insert(bookCategories).values(
-      categoriesList.map(catId => ({
+      categoriesList.map((catId) => ({
         bookId: bookId,
         categoryId: catId,
-      }))
+      })),
     );
   }
 
@@ -487,7 +506,10 @@ export async function getFavoriteBooks() {
       location: books.location,
       createdAt: books.createdAt,
       updatedAt: books.updatedAt,
-      heartsCount: sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(Number),
+      heartsCount:
+        sql<number>`(SELECT count(*) FROM ${userBookHearts} WHERE ${userBookHearts.bookId} = ${books.id})`.mapWith(
+          Number,
+        ),
     })
     .from(books)
     .innerJoin(userBookHearts, eq(userBookHearts.bookId, books.id))

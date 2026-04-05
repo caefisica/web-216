@@ -27,22 +27,23 @@ export async function getUserActivity() {
 
   if (!session) throw new Error("Unauthorized");
 
-  const activity = await db.select({
-    id: borrowRequests.id,
-    userId: borrowRequests.userId,
-    bookId: borrowRequests.bookId,
-    status: borrowRequests.status,
-    request_date: borrowRequests.requestDate,
-    approved_date: borrowRequests.approvedDate,
-    due_date: borrowRequests.dueDate,
-    returned_date: borrowRequests.returnDate,
-    notes: borrowRequests.notes,
-    book: books
-  })
-  .from(borrowRequests)
-  .leftJoin(books, eq(borrowRequests.bookId, books.id))
-  .where(eq(borrowRequests.userId, session.user.id))
-  .orderBy(desc(borrowRequests.requestDate));
+  const activity = await db
+    .select({
+      id: borrowRequests.id,
+      userId: borrowRequests.userId,
+      bookId: borrowRequests.bookId,
+      status: borrowRequests.status,
+      request_date: borrowRequests.requestDate,
+      approved_date: borrowRequests.approvedDate,
+      due_date: borrowRequests.dueDate,
+      returned_date: borrowRequests.returnDate,
+      notes: borrowRequests.notes,
+      book: books,
+    })
+    .from(borrowRequests)
+    .leftJoin(books, eq(borrowRequests.bookId, books.id))
+    .where(eq(borrowRequests.userId, session.user.id))
+    .orderBy(desc(borrowRequests.requestDate));
 
   return activity;
 }
@@ -54,7 +55,8 @@ export async function updateUserProfile(data: { name?: string; image?: string })
 
   if (!session) throw new Error("Unauthorized");
 
-  const [updatedUser] = await db.update(user)
+  const [updatedUser] = await db
+    .update(user)
     .set({
       ...data,
       updatedAt: new Date(),
@@ -76,7 +78,8 @@ export async function updateUserRole(userId: string, newRole: string) {
     throw new Error("Only admins can manage roles");
   }
 
-  await db.update(user)
+  await db
+    .update(user)
     .set({ role: newRole as any })
     .where(eq(user.id, userId));
 

@@ -89,18 +89,13 @@ async function createAuthUsers(adminEmailFromPrompt) {
 
     if (listError && listError.status !== 404) {
       // 404 means user not found, which is fine for creation
-      console.error(
-        `Error checking for auth user ${userData.email}: ${listError.message}`,
-      );
+      console.error(`Error checking for auth user ${userData.email}: ${listError.message}`);
     }
 
     if (existingAuthUsers && existingAuthUsers.length > 0) {
       const userId = existingAuthUsers[0].id;
-      console.log(
-        `Auth user ${userData.email} already exists with ID: ${userId}. Deleting...`,
-      );
-      const { error: deleteError } =
-        await supabase.auth.admin.deleteUser(userId);
+      console.log(`Auth user ${userData.email} already exists with ID: ${userId}. Deleting...`);
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
       if (deleteError) {
         console.error(
           `Failed to delete existing auth user ${userData.email}: ${deleteError.message}`,
@@ -120,14 +115,9 @@ async function createAuthUsers(adminEmailFromPrompt) {
     });
 
     if (createError) {
-      console.error(
-        `Error creating auth user ${userData.email}:`,
-        createError.message,
-      );
+      console.error(`Error creating auth user ${userData.email}:`, createError.message);
     } else if (data.user) {
-      console.log(
-        `Created auth user ${data.user.email} with ID: ${data.user.id}`,
-      );
+      console.log(`Created auth user ${data.user.email} with ID: ${data.user.id}`);
       createdAuthUsers.push({
         ...data.user,
         role: userData.role,
@@ -151,10 +141,7 @@ async function seedPublicUsers(authUsers) {
     role: authUser.role,
   }));
 
-  const { data, error } = await supabase
-    .from("users")
-    .insert(userProfiles)
-    .select();
+  const { data, error } = await supabase.from("users").insert(userProfiles).select();
   if (error) {
     console.error("Error seeding public.users:", error.message);
     return [];
@@ -165,10 +152,7 @@ async function seedPublicUsers(authUsers) {
 
 async function seedCategories() {
   console.log("Seeding categories...");
-  const { data, error } = await supabase
-    .from("categories")
-    .insert(categoriesData)
-    .select();
+  const { data, error } = await supabase.from("categories").insert(categoriesData).select();
   if (error) {
     console.error("Error seeding categories:", error.message);
     return [];
@@ -316,10 +300,7 @@ async function seedBooks(categories, users) {
     };
   });
 
-  const { data, error } = await supabase
-    .from("books")
-    .insert(booksToInsert)
-    .select();
+  const { data, error } = await supabase.from("books").insert(booksToInsert).select();
   if (error) {
     console.error("Error seeding books:", error.message);
     return [];
@@ -366,14 +347,9 @@ async function seedUserBookHearts(users, books) {
     .filter((h) => h !== null);
 
   if (heartsToInsert.length > 0) {
-    const { error } = await supabase
-      .from("user_book_hearts")
-      .insert(heartsToInsert);
+    const { error } = await supabase.from("user_book_hearts").insert(heartsToInsert);
     if (error) console.error("Error seeding user_book_hearts:", error.message);
-    else
-      console.log(
-        `Seeded ${heartsToInsert.length} user_book_hearts relations.`,
-      );
+    else console.log(`Seeded ${heartsToInsert.length} user_book_hearts relations.`);
   } else {
     console.log("No valid user_book_hearts to seed.");
   }
@@ -426,9 +402,7 @@ async function seedDonations(users) {
     .filter((d) => d !== null);
 
   if (donationsToInsert.length > 0) {
-    const { error } = await supabase
-      .from("donations")
-      .insert(donationsToInsert);
+    const { error } = await supabase.from("donations").insert(donationsToInsert);
     if (error) console.error("Error seeding donations:", error.message);
     else
       console.log(
@@ -503,9 +477,7 @@ async function seedBorrowRequests(users, books) {
     .filter((r) => r !== null);
 
   if (requestsToInsert.length > 0) {
-    const { error } = await supabase
-      .from("borrow_requests")
-      .insert(requestsToInsert);
+    const { error } = await supabase.from("borrow_requests").insert(requestsToInsert);
     if (error) console.error("Error seeding borrow_requests:", error.message);
     else console.log(`Seeded ${requestsToInsert.length} borrow_requests.`);
   } else {
