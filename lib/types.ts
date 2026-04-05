@@ -11,9 +11,8 @@ export interface User {
 export interface Category {
   id: string;
   name: string;
-  slug: string;
-  description: string;
-  created_at: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface BookImage {

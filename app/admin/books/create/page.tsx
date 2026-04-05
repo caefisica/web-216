@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { getCategories, createBook } from "@/lib/actions/books";
-import { uploadBookImage } from "@/app/books/[id]/actions";
+import { getCategories, createBook, uploadImage, addBookImage } from "@/lib/actions/books";
 import type { Category } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
@@ -60,13 +59,15 @@ export default function NewBookPage() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || (user.role !== "librarian" && user.role !== "admin"))) {
+    const userRole = (user as any)?.role;
+    if (!authLoading && (!user || (userRole !== "librarian" && userRole !== "admin"))) {
       router.push("/");
     }
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (user && (user.role === "librarian" || user.role === "admin")) {
+    const userRole = (user as any)?.role;
+    if (user && (userRole === "librarian" || userRole === "admin")) {
       fetchCategories();
     }
   }, [user]);
@@ -172,42 +173,46 @@ export default function NewBookPage() {
     setSubmitting(true);
 
     try {
-      // 1. Upload images first
-      const uploadedImages = [];
-      for (const imgUpload of imageUploads) {
-        const formData = new FormData();
-        formData.append("file", imgUpload.file);
-
-        const result = await uploadBookImage(formData);
-        if (!result.success || !result.url) {
-          throw new Error("Error uploading images");
-        }
-
-        uploadedImages.push({
-          url: result.url,
-          isCover: imgUpload.isCover,
-          altText: imgUpload.altText,
-        });
-      }
-
-      // 2. Create book with URLs
-      const result = await createBook(
+      // 1. Create the book first to get an ID
+      const bookResult = await createBook(
         {
-          ...formData,
-          publicationYear: formData.publication_year,
+          title: formData.title,
+          author: formData.author,
+          isbn: formData.isbn,
+          publisher: formData.publisher,
+          publication_year: formData.publication_year,
+          pages: formData.pages,
+          description: formData.description,
+          status: formData.status,
+          location: formData.location,
         },
-        uploadedImages,
+        [], // No images yet
         selectedCategories,
       );
 
-      if (result.success) {
-        toast({
-          title: "Libro añadido",
-          description: "El libro se ha añadido correctamente a la biblioteca.",
-        });
-        router.push("/");
-        router.refresh();
+      if (!bookResult.success || !bookResult.id) {
+        throw new Error("Error creating book");
       }
+
+      const bookId = bookResult.id;
+
+      // 2. Upload images and link them
+      for (let i = 0; i < imageUploads.length; i++) {
+        const imgUpload = imageUploads[i];
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", imgUpload.file);
+
+        const { url } = await uploadImage(uploadFormData);
+
+        await addBookImage(bookId, url, imgUpload.isCover, i);
+      }
+
+      toast({
+        title: "Libro añadido",
+        description: "El libro se ha añadido correctamente a la biblioteca.",
+      });
+      router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Error adding book:", error);
       toast({
