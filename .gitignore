@@ -3,6 +3,7 @@
 # bundlers
 .next
 .wrangler
+.open-next
 out
 
 # env files
