@@ -168,7 +168,7 @@ export function UserManagement() {
 
   const getRoleBadgeVariant = (
     role: string,
-  ): "default" | "secondary" | "destructive" | "outline" | null => {
+  ): "default" | "secondary" | "destructive" | "outline-solid" | null => {
     switch (role) {
       case "admin":
         return "default";
@@ -177,7 +177,7 @@ export function UserManagement() {
       case "suspended":
         return "destructive";
       default:
-        return "outline";
+        return "outline-solid";
     }
   };
 
@@ -214,7 +214,7 @@ export function UserManagement() {
 
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="shadow-sm font-bold rounded-xl">
+            <Button className="shadow-xs font-bold rounded-xl">
               <UserPlus className="h-4 w-4 mr-2" />
               Invitar usuario
             </Button>
@@ -282,11 +282,11 @@ export function UserManagement() {
             placeholder="Buscar por nombre o correo..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-12 rounded-2xl border-gray-100 shadow-sm"
+            className="pl-10 h-12 rounded-2xl border-gray-100 shadow-xs"
           />
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-full sm:w-[200px] h-12 rounded-2xl border-gray-100 shadow-sm">
+          <SelectTrigger className="w-full sm:w-[200px] h-12 rounded-2xl border-gray-100 shadow-xs">
             <SelectValue placeholder="Filtrar por rol" />
           </SelectTrigger>
           <SelectContent className="rounded-2xl">
@@ -313,11 +313,11 @@ export function UserManagement() {
           {filteredUsers.map((u) => (
             <Card
               key={u.id}
-              className="group hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-xl rounded-3xl border-gray-50 bg-white ring-1 ring-black/5 overflow-hidden"
+              className="group hover:border-blue-200 transition-all duration-300 shadow-xs hover:shadow-xl rounded-3xl border-gray-50 bg-white ring-1 ring-black/5 overflow-hidden"
             >
               <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0 p-6 bg-gray-50/30 border-b border-gray-50">
                 <div className="flex items-center space-x-3 truncate">
-                  <Avatar className="h-10 w-10 border-2 border-white shadow-sm rounded-xl overflow-hidden">
+                  <Avatar className="h-10 w-10 border-2 border-white shadow-xs rounded-xl overflow-hidden">
                     <AvatarFallback className="bg-blue-600 font-black text-xs text-white">
                       {u.name
                         ?.split(" ")

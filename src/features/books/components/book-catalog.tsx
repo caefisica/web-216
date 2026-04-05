@@ -80,7 +80,7 @@ export function BookCatalog({ initialBooks, initialCategories }: BookCatalogProp
   return (
     <div className="space-y-8">
       {/* Search and Filters */}
-      <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center gap-4 bg-white p-6 rounded-2xl border shadow-sm group">
+      <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center gap-4 bg-white p-6 rounded-2xl border shadow-xs group">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 transition-colors group-focus-within:text-blue-500" />
           <Input

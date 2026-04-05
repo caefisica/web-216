@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const BookIdSchema = z.object({ bookId: z.string().uuid() });
+export const BookIdSchema = z.object({ bookId: z.uuid() });
 
 export const SearchSchema = z.object({
   search: z.string().optional(),
@@ -9,7 +9,7 @@ export const SearchSchema = z.object({
 });
 
 export const UpdateBookSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   title: z.string(),
   author: z.string(),
   isbn: z.string().optional().nullable(),

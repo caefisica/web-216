@@ -10,7 +10,7 @@ import { protectedAction } from "@/lib/protected-action";
 // --- SCHEMAS ---
 
 const BorrowStatusSchema = z.object({
-  requestId: z.string().uuid(),
+  requestId: z.uuid(),
   status: z.enum(["approved", "rejected"]),
 });
 

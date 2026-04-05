@@ -49,7 +49,7 @@ export function BookCard({ book, isHearted, onToggleHeart, isLoading }: BookCard
     <Link href={`/books/${book.id}`}>
       <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 hover:border-gray-300 hover:-translate-y-1">
         <CardContent className="p-0">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-t-lg">
+          <div className="relative aspect-3/4 overflow-hidden rounded-t-lg">
             <Image
               src={imageUrl || "/placeholder.svg"}
               alt={coverImage?.altText || book.title}

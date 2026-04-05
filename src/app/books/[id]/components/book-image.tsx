@@ -16,7 +16,7 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
   // If no images provided, use a placeholder
   if (!images || images.length === 0) {
     return (
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border bg-gray-100 mb-6">
+      <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg border bg-gray-100 mb-6">
         <div className="absolute inset-0 flex items-center justify-center text-gray-400">
           No image available
         </div>
@@ -27,7 +27,7 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
   // If only one image, just show it
   if (images.length === 1) {
     return (
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border mb-6">
+      <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg border mb-6">
         <Image
           src={images[0].imageUrl || "/placeholder.svg"}
           alt={images[0].altText || title}
@@ -43,7 +43,7 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
   // Multiple images - show carousel
   return (
     <div className="space-y-2 mb-6">
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border">
+      <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg border">
         <Image
           src={images[currentImageIndex].imageUrl || "/placeholder.svg"}
           alt={images[currentImageIndex].altText || `${title} - Image ${currentImageIndex + 1}`}
@@ -90,7 +90,7 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
         {images.map((image, index) => (
           <button
             key={index}
-            className={`relative h-16 w-12 flex-shrink-0 overflow-hidden rounded border-2 ${
+            className={`relative h-16 w-12 shrink-0 overflow-hidden rounded border-2 ${
               index === currentImageIndex ? "border-primary" : "border-transparent"
             }`}
             onClick={() => setCurrentImageIndex(index)}
