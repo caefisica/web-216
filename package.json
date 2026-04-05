@@ -3,7 +3,8 @@
   "scripts": {
     "clean": "shx rm -rf .next node_modules bun.lock",
     "db:seed": "bun --env-file .env.local src/db/seed.mjs",
-    "dev": "next dev",
+    "db:sync": "bun --env-file .env.local src/lib/db/sync.ts",
+    "dev": "bun db:sync && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "oxlint .",
@@ -12,7 +13,9 @@
     "preview": "bun run pages:build && wrangler pages dev",
     "deploy": "bun run pages:build && wrangler pages deploy",
     "db:push": "drizzle-kit push",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "knip": "knip",
+    "knip:fix": "knip --fix"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1024.0",
@@ -56,9 +59,11 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "^0.31.10",
+    "knip": "^6.3.0",
     "oxfmt": "^0.43.0",
     "oxlint": "^1.58.0",
     "postcss": "^8.5.3",
+    "postcss-load-config": "^6.0.1",
     "shx": "^0.4.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3"
