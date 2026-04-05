@@ -1,0 +1,20 @@
+import { getSession } from "@/lib/protected-action";
+import { getBookById, getCategories } from "@/features/books/actions";
+import BookClient from "./book-client";
+import { NotFoundState } from "./components/not-found-state";
+import type { BookDetailed } from "@/features/books/types";
+
+export default async function BookPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = await getSession();
+
+  const [book, categories] = await Promise.all([getBookById(id), getCategories()]);
+
+  if (!book) {
+    return <NotFoundState />;
+  }
+
+  return (
+    <BookClient initialBook={book as BookDetailed} categories={categories} user={session?.user} />
+  );
+}
