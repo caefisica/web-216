@@ -10,14 +10,26 @@ type AnchorProps = ComponentPropsWithoutRef<"a">;
 type BlockquoteProps = ComponentPropsWithoutRef<"blockquote">;
 
 const components = {
-  h1: (props: HeadingProps) => <h1 className="font-medium pt-12 mb-0" {...props} />,
-  h2: (props: HeadingProps) => (
-    <h2 className="text-gray-800 dark:text-zinc-200 font-medium mt-8 mb-3" {...props} />
+  h1: ({ children, ...props }: HeadingProps) => (
+    <h1 className="font-medium pt-12 mb-0" {...props}>
+      {children}
+    </h1>
   ),
-  h3: (props: HeadingProps) => (
-    <h3 className="text-gray-800 dark:text-zinc-200 font-medium mt-8 mb-3" {...props} />
+  h2: ({ children, ...props }: HeadingProps) => (
+    <h2 className="text-gray-800 dark:text-zinc-200 font-medium mt-8 mb-3" {...props}>
+      {children}
+    </h2>
   ),
-  h4: (props: HeadingProps) => <h4 className="font-medium" {...props} />,
+  h3: ({ children, ...props }: HeadingProps) => (
+    <h3 className="text-gray-800 dark:text-zinc-200 font-medium mt-8 mb-3" {...props}>
+      {children}
+    </h3>
+  ),
+  h4: ({ children, ...props }: HeadingProps) => (
+    <h4 className="font-medium" {...props}>
+      {children}
+    </h4>
+  ),
   p: (props: ParagraphProps) => (
     <p className="text-gray-800 dark:text-zinc-300 leading-snug" {...props} />
   ),

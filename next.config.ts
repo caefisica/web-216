@@ -16,9 +16,6 @@ const nextConfig: NextConfig = {
     mdxRs: true,
     viewTransition: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },

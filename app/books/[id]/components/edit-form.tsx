@@ -317,11 +317,12 @@ interface BadgeProps {
 
 function Badge({ children, variant, className, onClick }: BadgeProps) {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${variant === "default" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"} ${className || ""}`}
+      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer border-none ${variant === "default" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"} ${className || ""}`}
     >
       {children}
-    </div>
+    </button>
   );
 }

@@ -1,9 +1,6 @@
-const { createClient } = require("@supabase/supabase-js");
-const dotenv = require("dotenv");
-const readline = require("node:readline/promises");
-const { stdin: input, stdout: output } = require("node:process");
-
-dotenv.config({ path: ".env.local" });
+import { createClient } from "@supabase/supabase-js";
+import readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
