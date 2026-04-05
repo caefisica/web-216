@@ -154,12 +154,13 @@ export function BookCatalog({ initialBooks, initialCategories }: BookCatalogProp
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {books.map((book) => (
+          {books.map((book, index) => (
             <BookCard
               key={book.id}
               book={book}
               isHearted={!!book.isHearted}
               onToggleHeart={(e) => handleToggleHeart(e, book.id)}
+              priority={index < 4}
             />
           ))}
         </div>

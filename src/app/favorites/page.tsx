@@ -122,12 +122,13 @@ export default function FavoritesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {favoriteBooks.map((book) => (
+            {favoriteBooks.map((book, index) => (
               <BookCard
                 key={book.id}
                 book={book}
                 isHearted={true}
                 onToggleHeart={(e) => handleToggleHeart(e, book.id)}
+                priority={index < 4}
               />
             ))}
           </div>

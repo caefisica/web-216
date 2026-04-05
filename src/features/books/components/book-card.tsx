@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin } from "lucide-react";
+import { getPlaceholderUrl } from "@/lib/placeholders";
 import type { BookDetailed } from "../types";
 
 interface BookCardProps {
@@ -13,9 +14,10 @@ interface BookCardProps {
   isHearted: boolean;
   onToggleHeart: (e: React.MouseEvent) => void;
   isLoading?: boolean;
+  priority?: boolean;
 }
 
-export function BookCard({ book, isHearted, onToggleHeart, isLoading }: BookCardProps) {
+export function BookCard({ book, isHearted, onToggleHeart, isLoading, priority }: BookCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -43,7 +45,7 @@ export function BookCard({ book, isHearted, onToggleHeart, isLoading }: BookCard
   };
 
   const coverImage = book.coverImage || book.images?.[0];
-  const imageUrl = coverImage?.imageUrl || "/placeholder.svg?height=400&width=300";
+  const imageUrl = coverImage?.imageUrl || getPlaceholderUrl(300, 400);
 
   return (
     <Link href={`/books/${book.id}`}>
@@ -55,6 +57,7 @@ export function BookCard({ book, isHearted, onToggleHeart, isLoading }: BookCard
               alt={coverImage?.altText || book.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-200"
+              priority={priority}
             />
             <div className="absolute top-3 left-3">
               <Badge className={getStatusColor(book.status)} variant="outline">

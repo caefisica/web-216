@@ -17,15 +17,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Edit, Trash2, Heart, BookOpen } from "lucide-react";
-import type { BookDetailed } from "../../books/types";
+import { getPlaceholderUrl } from "@/lib/placeholders";
+import type { BookDetailed } from "@/features/books/types";
 
 interface AdminBookCardProps {
   book: BookDetailed;
   onDelete: () => Promise<void>;
   isDeleting?: boolean;
+  priority?: boolean;
 }
 
-export function AdminBookCard({ book, onDelete, isDeleting }: AdminBookCardProps) {
+export function AdminBookCard({ book, onDelete, isDeleting, priority }: AdminBookCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -98,11 +100,12 @@ export function AdminBookCard({ book, onDelete, isDeleting }: AdminBookCardProps
         <div className="aspect-3/4 relative overflow-hidden bg-gray-100">
           {imageUrl ? (
             <Image
-              src={imageUrl || "/placeholder.svg"}
+              src={imageUrl || getPlaceholderUrl(300, 400)}
               alt={coverImage?.altText || book.title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              priority={priority}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100">

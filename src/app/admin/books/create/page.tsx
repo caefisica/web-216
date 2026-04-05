@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { getCategories, createBook, uploadBookImage, addBookImage } from "@/features/books/actions";
+import { getPlaceholderUrl } from "@/lib/placeholders";
 import type { Category } from "@/features/books/types";
 import type { User } from "@/features/users/types";
 
@@ -265,7 +266,7 @@ export default function NewBookPage() {
                             <div className="flex items-start gap-4">
                               <div className="relative w-20 h-24 shrink-0 bg-gray-50 rounded-xl overflow-hidden border">
                                 <Image
-                                  src={imageUpload.preview || "/placeholder.svg"}
+                                  src={imageUpload.preview || getPlaceholderUrl(300, 400)}
                                   alt={`Imagen ${index + 1}`}
                                   fill
                                   className="object-cover"

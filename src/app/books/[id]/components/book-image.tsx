@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getPlaceholderUrl } from "@/lib/placeholders";
 
 interface BookImageProps {
   images?: Array<{ imageUrl: string; altText?: string | null; isCover?: boolean }>;
@@ -29,7 +30,7 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
     return (
       <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg border mb-6">
         <Image
-          src={images[0].imageUrl || "/placeholder.svg"}
+          src={images[0].imageUrl || getPlaceholderUrl(300, 400)}
           alt={images[0].altText || title}
           fill
           className="object-cover"
@@ -45,7 +46,7 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
     <div className="space-y-2 mb-6">
       <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg border">
         <Image
-          src={images[currentImageIndex].imageUrl || "/placeholder.svg"}
+          src={images[currentImageIndex].imageUrl || getPlaceholderUrl(300, 400)}
           alt={images[currentImageIndex].altText || `${title} - Image ${currentImageIndex + 1}`}
           fill
           className="object-cover"
@@ -96,7 +97,7 @@ export function BookImage({ images = [], title = "Book cover" }: BookImageProps)
             onClick={() => setCurrentImageIndex(index)}
           >
             <Image
-              src={image.imageUrl || "/placeholder.svg"}
+              src={image.imageUrl || getPlaceholderUrl(300, 400)}
               alt={image.altText || `Thumbnail ${index + 1}`}
               fill
               className="object-cover"

@@ -172,11 +172,12 @@ export function AdminDashboard({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
-              {books.map((book) => (
+              {books.map((book, index) => (
                 <AdminBookCard
                   key={book.id}
                   book={book}
                   onDelete={() => handleDeleteBook(book.id)}
+                  priority={index < 4}
                 />
               ))}
             </div>
