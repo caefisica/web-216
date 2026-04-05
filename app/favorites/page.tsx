@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/auth/auth-provider";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
+import { getFavoriteBooks } from "@/lib/actions/books";
 import type { Book } from "@/lib/types";
 import { BookCard } from "@/components/books/book-card";
 import { Heart, BookOpen } from "lucide-react";
@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function FavoritesPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { data: session, isPending: authLoading } = authClient.useSession();
+  const user = session?.user;
   const router = useRouter();
 
-  const [favoriteBooks, setFavoriteBooks] = useState<Book[]>([]);
+  const [favoriteBooks, setFavoriteBooks] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
@@ -33,37 +34,8 @@ export default function FavoritesPage() {
     if (!user) return;
     setLoadingData(true);
     try {
-      const { data: hearts, error: heartsError } = await supabase
-        .from("user_book_hearts")
-        .select("book_id")
-        .eq("user_id", user.id);
-
-      if (heartsError) throw heartsError;
-
-      if (hearts && hearts.length > 0) {
-        const bookIds = hearts.map((heart) => heart.book_id);
-
-        const { data: booksData, error: booksError } = await supabase
-          .from("books")
-          .select(
-            `
-            *,
-            category:categories(*),
-            hearts_count:user_book_hearts(count)
-          `,
-          )
-          .in("id", bookIds)
-          .order("created_at", { ascending: false });
-
-        if (booksError) throw booksError;
-
-        // Manually set is_hearted for these books as they are inherently favorites
-        const booksWithHeartedStatus =
-          booksData?.map((book) => ({ ...book, is_hearted: true })) || [];
-        setFavoriteBooks(booksWithHeartedStatus);
-      } else {
-        setFavoriteBooks([]);
-      }
+      const data = await getFavoriteBooks();
+      setFavoriteBooks(data || []);
     } catch (error) {
       console.error("Error fetching favorite books:", error);
     } finally {
@@ -73,7 +45,7 @@ export default function FavoritesPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-medium">
         <p>Cargando favoritos...</p>
       </div>
     );
@@ -98,15 +70,8 @@ export default function FavoritesPage() {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-lg border border-gray-200 animate-pulse"
-              >
-                <div className="aspect-[3/4] bg-gray-200 rounded-t-lg" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded" />
-                  <div className="h-3 bg-gray-200 rounded w-2/3" />
-                  <div className="h-3 bg-gray-200 rounded w-1/2" />
-                </div>
-              </div>
+                className="bg-white rounded-lg border border-gray-200 animate-pulse h-64"
+              />
             ))}
           </div>
         ) : favoriteBooks.length === 0 ? (
@@ -118,8 +83,7 @@ export default function FavoritesPage() {
               Aún no tienes favoritos
             </h3>
             <p className="text-gray-600">
-              Comienza a explorar y marca con un corazón los libros que te
-              gusten o te interesen. ¡Aparecerán aquí!
+              Comienza a explorar y marca con un corazón los libros que te gusten.
             </p>
             <Button asChild className="mt-6">
               <Link href="/">
@@ -132,7 +96,7 @@ export default function FavoritesPage() {
             {favoriteBooks.map((book) => (
               <BookCard
                 key={book.id}
-                book={book}
+                book={book as any}
                 onHeartChange={fetchFavoriteBooks}
               />
             ))}

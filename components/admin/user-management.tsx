@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/components/auth/auth-provider";
+import { authClient } from "@/lib/auth-client";
+import {
+  getAllUsers,
+  updateUserRole,
+  suspendUser,
+} from "@/lib/actions/users";
 import type { User } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,14 +57,10 @@ import {
   Link,
   Copy,
 } from "lucide-react";
-import {
-  inviteUser,
-  updateUserRole,
-  suspendUser,
-} from "@/app/admin/actions/user-management";
 
 export function UserManagement() {
-  const { user: currentUser } = useAuth();
+  const { data: session } = authClient.useSession();
+  const currentUser = session?.user;
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,13 +107,8 @@ export function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setUsers(data || []);
+      const data = await getAllUsers();
+      setUsers(data as any[]);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -127,67 +122,10 @@ export function UserManagement() {
   };
 
   const handleInviteUser = async () => {
-    if (!inviteForm.name || !inviteForm.email) {
-      toast({
-        title: "Error",
-        description: "Todos los campos son requeridos",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setInviteLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("name", inviteForm.name);
-      formData.append("email", inviteForm.email);
-      formData.append("role", inviteForm.role);
-      formData.append("inviterName", currentUser?.name || "Administrador");
-
-      const result = await inviteUser(formData);
-
-      if (result.success) {
-        toast({
-          title: "Usuario invitado exitosamente",
-          description: result.message,
-        });
-
-        // Store the result for showing status
-        setLastInviteResult({
-          emailSent: result.emailSent || false,
-          setupRequired: result.setupRequired || false,
-          message: result.message,
-          setupUrl: result.setupUrl,
-        });
-        setShowInviteResult(true);
-
-        setInviteDialogOpen(false);
-        fetchUsers();
-
-        // Reset form
-        setInviteForm({
-          name: "",
-          email: "",
-          role: "user",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: result.error,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error inviting user:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo invitar al usuario.",
-        variant: "destructive",
-      });
-    } finally {
-      setInviteLoading(false);
-    }
+    toast({
+      title: "Próximamente",
+      description: "El sistema de invitaciones se está migrando a Better Auth. Por ahora, los usuarios pueden registrarse directamente.",
+    });
   };
 
   const handleRoleChange = async (
@@ -206,7 +144,7 @@ export function UserManagement() {
       } else {
         toast({
           title: "Error",
-          description: result.error,
+          description: (result as any).error || "Error desconocido",
           variant: "destructive",
         });
       }
@@ -233,7 +171,7 @@ export function UserManagement() {
       } else {
         toast({
           title: "Error",
-          description: result.error,
+          description: (result as any).error || "Error desconocido",
           variant: "destructive",
         });
       }
@@ -303,7 +241,7 @@ export function UserManagement() {
   };
 
   const canManageUser = (targetUser: User) => {
-    if (currentUser?.role !== "admin") return false;
+    if ((currentUser as any)?.role !== "admin") return false;
     if (targetUser.id === currentUser.id) return false;
     return true;
   };

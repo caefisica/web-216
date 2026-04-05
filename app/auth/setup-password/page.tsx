@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,23 +71,13 @@ export default function SetupPasswordPage() {
     setError("");
 
     try {
-      // Use the recovery token to set the password
-      const { data, error } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: "recovery",
+      const { error } = await authClient.resetPassword({
+        newPassword: password,
+        token: token,
       });
 
       if (error) {
         throw error;
-      }
-
-      // Update the password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (updateError) {
-        throw updateError;
       }
 
       setSuccess(true);

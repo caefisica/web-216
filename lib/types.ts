@@ -53,7 +53,7 @@ export interface Book {
   images?: BookImage[];
   cover_image?: BookImage;
   is_hearted?: boolean;
-  hearts_count?: { count: number }[];
+  hearts_count?: number;
 }
 
 export interface BorrowRequest {

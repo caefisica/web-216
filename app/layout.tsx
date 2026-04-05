@@ -3,7 +3,6 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/components/auth/auth-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
@@ -57,8 +56,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <AuthProvider>
-          <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
               <ViewTransition name="test">{children}</ViewTransition>
@@ -66,7 +64,6 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
-        </AuthProvider>
       </body>
     </html>
   );

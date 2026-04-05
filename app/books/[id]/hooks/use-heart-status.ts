@@ -1,33 +1,16 @@
-import { useState, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { TOAST_MESSAGES } from "../constants/book-constants";
 import type { User } from "@/lib/types";
+import { toggleHeart } from "@/lib/actions/books";
 
-export function useHeartStatus(user: User | null, bookId: string) {
-  const [isHearted, setIsHearted] = useState(false);
+export function useHeartStatus(user: User | null, bookId: string, initialHearted = false) {
+  const [isHearted, setIsHearted] = useState(initialHearted);
 
-  const checkHeartStatus = useCallback(async () => {
-    if (!user || !bookId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("user_book_hearts")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("book_id", bookId)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error checking heart status:", error);
-        return;
-      }
-
-      setIsHearted(!!data);
-    } catch (error) {
-      console.error("Error checking heart status:", error);
-    }
-  }, [user, bookId]);
+  // Sync with initial state if provided
+  useEffect(() => {
+    setIsHearted(initialHearted);
+  }, [initialHearted]);
 
   const handleHeart = useCallback(
     async (onSuccess?: () => void) => {
@@ -40,35 +23,19 @@ export function useHeartStatus(user: User | null, bookId: string) {
       }
 
       try {
-        if (isHearted) {
-          const { error } = await supabase
-            .from("user_book_hearts")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("book_id", bookId);
-
-          if (error) throw error;
-          setIsHearted(false);
-        } else {
-          const { error } = await supabase
-            .from("user_book_hearts")
-            .insert([{ user_id: user.id, book_id: bookId }]);
-
-          if (error) throw error;
-          setIsHearted(true);
-        }
-
+        const result = await toggleHeart(bookId);
+        setIsHearted(result.hearted);
         onSuccess?.();
       } catch (error) {
         console.error("Error updating heart:", error);
         toast({
           ...TOAST_MESSAGES.ERROR,
-          description: "Failed to update heart status.",
+          description: "No se pudo actualizar el estado de favorito.",
         });
       }
     },
-    [user, bookId, isHearted],
+    [user, bookId],
   );
 
-  return { isHearted, checkHeartStatus, handleHeart };
+  return { isHearted, handleHeart };
 }

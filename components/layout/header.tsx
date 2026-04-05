@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/components/auth/auth-provider";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { BookOpen, User, LogOut, Heart } from "lucide-react";
 import {
@@ -22,7 +22,12 @@ import {
 import { cn } from "@/lib/utils";
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+  };
 
   return (
     <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
@@ -158,7 +163,7 @@ export function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={signOut}
+                    onClick={handleSignOut}
                     className="flex items-center text-red-600"
                   >
                     <LogOut className="h-4 w-4 mr-2" />

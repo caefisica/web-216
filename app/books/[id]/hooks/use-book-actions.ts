@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { TOAST_MESSAGES } from "../constants/book-constants";
 import type { User } from "@/lib/types";
 import type { BookFormData } from "../types/book-types";
+import { createBorrowRequest, updateBook } from "@/lib/actions/books";
 
 export function useBookActions(user: User | null, bookId: string) {
   const [borrowing, setBorrowing] = useState(false);
@@ -21,19 +21,13 @@ export function useBookActions(user: User | null, bookId: string) {
 
     setBorrowing(true);
     try {
-      const { error } = await supabase.from("borrow_requests").insert([
-        {
-          user_id: user.id,
-          book_id: bookId,
-          notes: borrowNote,
-        },
-      ]);
+      const result = await createBorrowRequest(bookId, borrowNote);
 
-      if (error) throw error;
-
-      toast(TOAST_MESSAGES.REQUEST_SUBMITTED);
-      setBorrowNote("");
-      setDialogOpen(false);
+      if (result.success) {
+        toast(TOAST_MESSAGES.REQUEST_SUBMITTED);
+        setBorrowNote("");
+        setDialogOpen(false);
+      }
     } catch (error) {
       console.error("Error submitting borrow request:", error);
       toast({
@@ -57,17 +51,17 @@ export function useBookActions(user: User | null, bookId: string) {
         publisher: editForm.publisher,
         location: editForm.location,
         description: editForm.description,
+        publicationYear: editForm.publicationYear,
+        pages: editForm.pages,
+        status: editForm.status,
       };
 
-      const { error } = await supabase
-        .from("books")
-        .update(updateData)
-        .eq("id", bookId);
+      const result = await updateBook(bookId, updateData);
 
-      if (error) throw error;
-
-      toast(TOAST_MESSAGES.BOOK_UPDATED);
-      onSuccess?.();
+      if (result.success) {
+        toast(TOAST_MESSAGES.BOOK_UPDATED);
+        onSuccess?.();
+      }
     } catch (error) {
       console.error("Error updating book:", error);
       toast({

@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Book } from "@/lib/types";
-import { supabase } from "@/lib/supabase";
+import { deleteBook } from "@/lib/actions/books";
 import { toast } from "@/hooks/use-toast";
 import { Edit, Trash2, Heart, BookOpen } from "lucide-react";
 
@@ -33,16 +33,15 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from("books").delete().eq("id", book.id);
+      const result = await deleteBook(book.id);
 
-      if (error) throw error;
-
-      toast({
-        title: "Libro eliminado",
-        description: "El libro ha sido eliminado correctamente.",
-      });
-
-      onUpdate();
+      if (result.success) {
+        toast({
+          title: "Libro eliminado",
+          description: "El libro ha sido eliminado correctamente.",
+        });
+        onUpdate();
+      }
     } catch (error) {
       console.error("Error al eliminar el libro:", error);
       toast({
@@ -95,22 +94,17 @@ export function AdminBookCard({ book, onUpdate }: AdminBookCardProps) {
       return book.images[0].image_url;
     }
 
-    // Finally fallback to legacy image_url
-    return book.image_url;
+    // Finally fallback to nothing (icon will be shown)
+    return undefined;
   };
 
   const bookImageUrl = getBookImage();
 
   // Get categories to display
   const getCategoriesToDisplay = () => {
-    // Use new multiple categories system if available
+    // Both systems now use categories array from the server action
     if (book.categories && book.categories.length > 0) {
       return book.categories.slice(0, 2); // Show first 2 categories
-    }
-
-    // Fallback to legacy single category
-    if (book.category) {
-      return [book.category];
     }
 
     return [];

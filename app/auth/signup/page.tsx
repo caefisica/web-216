@@ -1,10 +1,9 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/auth/auth-provider";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +16,6 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,11 +23,17 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
+      const { error } = await authClient.signUp.email({
+        email,
+        password,
+        name,
+      });
+
+      if (error) throw error;
+
       toast({
         title: "¡Cuenta creada!",
-        description:
-          "Por favor, revisa tu correo electrónico para verificar tu cuenta.",
+        description: "Has creado tu cuenta correctamente. Ahora puedes iniciar sesión.",
       });
       router.push("/auth/signin");
     } catch (error: any) {
@@ -59,6 +63,7 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                placeholder="Nombre Apellido"
               />
             </div>
             <div>
@@ -69,6 +74,7 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                placeholder="tu@email.com"
               />
             </div>
             <div>
@@ -83,7 +89,7 @@ export default function SignUpPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creando cuenta..." : "Sign Up"}
+              {loading ? "Creando cuenta..." : "Registrarse"}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">

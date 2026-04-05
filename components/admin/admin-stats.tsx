@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { getDetailedAdminStats } from "@/lib/actions/admin";
 import {
   BarChart3,
   TrendingUp,
@@ -86,179 +86,12 @@ export function AdminStats() {
 
   const fetchStatistics = async () => {
     try {
-      // Fetch books with borrow counts using separate queries to avoid relationship ambiguity
-      const { data: allBooks, error: booksError } = await supabase
-        .from("books")
-        .select("id, title, author, status");
-
-      if (booksError) throw booksError;
-
-      // Fetch borrow requests separately
-      const { data: borrowRequests, error: borrowError } = await supabase
-        .from("borrow_requests")
-        .select("book_id, status, approved_date, returned_date")
-        .eq("status", "approved");
-
-      if (borrowError) throw borrowError;
-
-      // Fetch heart counts separately
-      const { data: heartCounts, error: heartsError } = await supabase
-        .from("user_book_hearts")
-        .select("book_id");
-
-      if (heartsError) throw heartsError;
-
-      // Process books data to get borrow counts and heart counts
-      const bookMap = new Map();
-      const heartCountMap = new Map();
-
-      // Count hearts per book
-      heartCounts?.forEach((heart: any) => {
-        const count = heartCountMap.get(heart.book_id) || 0;
-        heartCountMap.set(heart.book_id, count + 1);
-      });
-
-      // Initialize books
-      allBooks?.forEach((book: any) => {
-        const heartsCount = heartCountMap.get(book.id) || 0;
-        bookMap.set(book.id, {
-          id: book.id,
-          title: book.title,
-          author: book.author,
-          status: book.status,
-          borrow_count: 0,
-          hearts_count: heartsCount,
-          popularity_score: 0,
-        });
-      });
-
-      // Count borrows per book
-      borrowRequests?.forEach((request: any) => {
-        if (bookMap.has(request.book_id)) {
-          const book = bookMap.get(request.book_id);
-          book.borrow_count += 1;
-        }
-      });
-
-      // Calculate popularity scores and sort
-      const booksWithScores = Array.from(bookMap.values()).map(
-        (book: BookStats) => ({
-          ...book,
-          popularity_score: calculatePopularityScore(
-            book.borrow_count,
-            book.hearts_count,
-          ),
-        }),
-      );
-
-      const sortedBooks = booksWithScores
-        .sort((a, b) => b.popularity_score - a.popularity_score)
-        .filter((book) => book.popularity_score > 0); // Only show books with some activity
-
-      setAllPopularBooks(sortedBooks);
-
-      // Fetch users with borrow counts using separate queries
-      const { data: allUsers, error: usersError } = await supabase
-        .from("users")
-        .select("id, name, email, created_at, role");
-
-      if (usersError) throw usersError;
-
-      // Count borrows per user
-      const userMap = new Map();
-      allUsers?.forEach((user: any) => {
-        userMap.set(user.id, {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          created_at: user.created_at,
-          role: user.role,
-          borrow_count: 0,
-        });
-      });
-
-      borrowRequests?.forEach((request: any) => {
-        if (userMap.has(request.user_id)) {
-          const user = userMap.get(request.user_id);
-          user.borrow_count += 1;
-        }
-      });
-
-      const sortedUsers = Array.from(userMap.values())
-        .sort((a, b) => b.borrow_count - a.borrow_count)
-        .filter((user) => user.borrow_count > 0); // Only show active users
-
-      setActiveUsers(sortedUsers);
-
-      // Fetch monthly statistics
-      const { data: monthlyBorrows, error: monthlyError } = await supabase
-        .from("borrow_requests")
-        .select("approved_date, returned_date, status")
-        .not("approved_date", "is", null);
-
-      if (monthlyError) throw monthlyError;
-
-      // Process monthly data
-      const monthlyMap = new Map();
-      const last6Months = Array.from({ length: 6 }, (_, i) => {
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        return date.toISOString().slice(0, 7); // YYYY-MM format
-      }).reverse();
-
-      last6Months.forEach((month) => {
-        monthlyMap.set(month, {
-          month: new Date(month + "-01").toLocaleDateString("es-ES", {
-            month: "long",
-            year: "numeric",
-          }),
-          borrows: 0,
-          returns: 0,
-          new_users: 0,
-        });
-      });
-
-      monthlyBorrows?.forEach((request: any) => {
-        if (request.approved_date) {
-          const month = request.approved_date.slice(0, 7);
-          if (monthlyMap.has(month)) {
-            monthlyMap.get(month).borrows += 1;
-          }
-        }
-        if (request.returned_date) {
-          const month = request.returned_date.slice(0, 7);
-          if (monthlyMap.has(month)) {
-            monthlyMap.get(month).returns += 1;
-          }
-        }
-      });
-
-      setMonthlyData(Array.from(monthlyMap.values()));
-
-      // Calculate overall statistics
-      const totalBorrows = borrowRequests?.length || 0;
-      const totalReturns =
-        monthlyBorrows?.filter((r: any) => r.returned_date).length || 0;
-      const bookUtilization =
-        sortedBooks.length > 0
-          ? sortedBooks.reduce((sum, book) => sum + book.borrow_count, 0) /
-            sortedBooks.length
-          : 0;
-
-      setOverallStats({
-        totalBorrows,
-        totalReturns,
-        averageBorrowTime: 14, // Default 2 weeks
-        mostActiveMonth:
-          monthlyData.length > 0
-            ? monthlyData.reduce(
-                (max, month) => (month.borrows > max.borrows ? month : max),
-                monthlyData[0],
-              )?.month || ""
-            : "",
-        userGrowthRate: 15, // Placeholder
-        bookUtilizationRate: Math.round(bookUtilization * 10) / 10,
-      });
+      const data = await getDetailedAdminStats();
+      
+      setAllPopularBooks(data.popularBooks as any);
+      setActiveUsers(data.activeUsers as any);
+      setMonthlyData(data.monthlyData as any);
+      setOverallStats(data.overallStats as any);
     } catch (error) {
       console.error("Error fetching statistics:", error);
     } finally {

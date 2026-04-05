@@ -10,8 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin } from "lucide-react";
-import { useAuth } from "@/components/auth/auth-provider";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
+import { toggleHeart } from "@/lib/actions/books";
 import { toast } from "@/hooks/use-toast";
 
 interface BookCardProps {
@@ -20,7 +20,8 @@ interface BookCardProps {
 }
 
 export function BookCard({ book, onHeartChange }: BookCardProps) {
-  const { user } = useAuth();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
   const [isHearted, setIsHearted] = useState(book.is_hearted || false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,31 +41,12 @@ export function BookCard({ book, onHeartChange }: BookCardProps) {
 
     setIsLoading(true);
     try {
-      if (isHearted) {
-        const { error } = await supabase
-          .from("user_book_hearts")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("book_id", book.id);
-
-        if (error) throw error;
-        setIsHearted(false);
-        toast({
-          title: "Eliminado de favoritos",
-          description: "Libro eliminado de tus favoritos.",
-        });
-      } else {
-        const { error } = await supabase
-          .from("user_book_hearts")
-          .insert([{ user_id: user.id, book_id: book.id }]);
-
-        if (error) throw error;
-        setIsHearted(true);
-        toast({
-          title: "Añadido a favoritos",
-          description: "Libro añadido a tus favoritos.",
-        });
-      }
+      const result = await toggleHeart(book.id);
+      setIsHearted(result.hearted);
+      toast({
+        title: result.hearted ? "Añadido a favoritos" : "Eliminado de favoritos",
+        description: result.hearted ? "Libro añadido a tus favoritos." : "Libro eliminado de tus favoritos.",
+      });
       onHeartChange?.();
     } catch (error) {
       console.error("Error updating heart:", error);
@@ -182,11 +164,11 @@ export function BookCard({ book, onHeartChange }: BookCardProps) {
               )}
             </div>
 
-            {book.hearts_count?.count > 0 && (
+            {book.hearts_count !== undefined && book.hearts_count > 0 && (
               <div className="flex items-center text-xs text-gray-500">
                 <Heart className="h-3 w-3 mr-1 fill-current text-red-400" />
-                {book.hearts_count.count}{" "}
-                {book.hearts_count.count === 1 ? "me gusta" : "me gusta"}
+                {book.hearts_count}{" "}
+                {book.hearts_count === 1 ? "me gusta" : "me gusta"}
               </div>
             )}
           </div>

@@ -1,14 +1,14 @@
 "use client";
 
 import type React from "react";
-
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/components/auth/auth-provider";
-import { supabase } from "@/lib/supabase";
-import type { Category, BookImage } from "@/lib/types";
+import { authClient } from "@/lib/auth-client";
+import { getCategories, createBook } from "@/lib/actions/books";
+import { uploadBookImage } from "@/app/books/[id]/actions";
+import type { Category } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,8 @@ interface ImageUpload {
 }
 
 export default function NewBookPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { data: session, isPending: authLoading } = authClient.useSession();
+  const user = session?.user;
   const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -75,12 +76,7 @@ export default function NewBookPage() {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
+      const data = await getCategories();
       setCategories(data || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -102,7 +98,7 @@ export default function NewBookPage() {
             id: Math.random().toString(36).substring(2, 15),
             file,
             preview: URL.createObjectURL(file),
-            isCover: imageUploads.length === 0, // First image is cover by default
+            isCover: imageUploads.length === 0,
             altText: "",
           };
           setImageUploads((prev) => [...prev, newImage]);
@@ -144,7 +140,6 @@ export default function NewBookPage() {
   const removeImage = (imageId: string) => {
     setImageUploads((prev) => {
       const updated = prev.filter((img) => img.id !== imageId);
-      // If we removed the cover image, make the first remaining image the cover
       if (updated.length > 0 && !updated.some((img) => img.isCover)) {
         updated[0].isCover = true;
       }
@@ -188,93 +183,42 @@ export default function NewBookPage() {
     setSubmitting(true);
 
     try {
-      // Convert numeric fields
-      const publication_year = formData.publication_year
-        ? Number.parseInt(formData.publication_year)
-        : null;
-      const pages = formData.pages ? Number.parseInt(formData.pages) : null;
-
-      // Insert book record
-      const { data: bookData, error: bookError } = await supabase
-        .from("books")
-        .insert([
-          {
-            title: formData.title,
-            author: formData.author,
-            isbn: formData.isbn || null,
-            publisher: formData.publisher || null,
-            publication_year,
-            pages,
-            description: formData.description || null,
-            status: formData.status,
-            location: formData.location || null,
-          },
-        ])
-        .select()
-        .single();
-
-      if (bookError) throw bookError;
-
-      const bookId = bookData.id;
-
-      // Upload images
-      const uploadedImages: BookImage[] = [];
-      for (let i = 0; i < imageUploads.length; i++) {
-        const imageUpload = imageUploads[i];
-        const fileExt = imageUpload.file.name.split(".").pop();
-        const fileName = `${bookId}_${i}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `book-images/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("books")
-          .upload(filePath, imageUpload.file);
-
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: publicUrlData } = supabase.storage
-          .from("books")
-          .getPublicUrl(filePath);
-
-        // Insert image record
-        const { data: imageData, error: imageError } = await supabase
-          .from("book_images")
-          .insert([
-            {
-              book_id: bookId,
-              image_url: publicUrlData.publicUrl,
-              is_cover: imageUpload.isCover,
-              alt_text: imageUpload.altText || null,
-              display_order: i,
-            },
-          ])
-          .select()
-          .single();
-
-        if (imageError) throw imageError;
-        uploadedImages.push(imageData);
+      // 1. Upload images first
+      const uploadedImages = [];
+      for (const imgUpload of imageUploads) {
+        const formData = new FormData();
+        formData.append("file", imgUpload.file);
+        
+        const result = await uploadBookImage(formData);
+        if (!result.success || !result.url) {
+          throw new Error("Error uploading images");
+        }
+        
+        uploadedImages.push({
+          url: result.url,
+          isCover: imgUpload.isCover,
+          altText: imgUpload.altText
+        });
       }
 
-      // Insert category associations
-      if (selectedCategories.length > 0) {
-        const categoryInserts = selectedCategories.map((categoryId) => ({
-          book_id: bookId,
-          category_id: categoryId,
-        }));
+      // 2. Create book with URLs
+      const result = await createBook(
+        {
+          ...formData,
+          publicationYear: formData.publication_year,
+        },
+        uploadedImages,
+        selectedCategories
+      );
 
-        const { error: categoryError } = await supabase
-          .from("book_categories")
-          .insert(categoryInserts);
-        if (categoryError) throw categoryError;
+      if (result.success) {
+        toast({
+          title: "Libro añadido",
+          description: "El libro se ha añadido correctamente a la biblioteca.",
+        });
+        router.push("/");
+        router.refresh();
       }
-
-      toast({
-        title: "Libro añadido",
-        description: "El libro se ha añadido correctamente a la biblioteca.",
-      });
-
-      // Redirect to books management page
-      router.push("/");
     } catch (error) {
       console.error("Error adding book:", error);
       toast({
@@ -297,7 +241,6 @@ export default function NewBookPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Page Header */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-3xl">
@@ -314,14 +257,12 @@ export default function NewBookPage() {
       <div className="container mx-auto px-6 py-8">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Image Upload */}
             <div>
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Imágenes del libro</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Image Upload Area */}
                   <div
                     {...getRootProps()}
                     className={`border-2 border-dashed rounded-md flex flex-col items-center justify-center p-6 cursor-pointer transition-colors ${
@@ -340,12 +281,8 @@ export default function NewBookPage() {
                     <p className="text-xs text-center text-gray-500">
                       o haz clic para seleccionar archivos
                     </p>
-                    <p className="text-xs text-center text-gray-400 mt-2">
-                      Múltiples imágenes permitidas
-                    </p>
                   </div>
 
-                  {/* Uploaded Images */}
                   {imageUploads.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="font-medium text-sm">
@@ -364,11 +301,6 @@ export default function NewBookPage() {
                                 fill
                                 className="object-cover rounded"
                               />
-                              {imageUpload.isCover && (
-                                <div className="absolute -top-1 -right-1">
-                                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                </div>
-                              )}
                             </div>
                             <div className="flex-1 space-y-2">
                               <Input
@@ -424,7 +356,6 @@ export default function NewBookPage() {
               </Card>
             </div>
 
-            {/* Right Column - Book Details */}
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
@@ -433,7 +364,6 @@ export default function NewBookPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Basic Information */}
                   <div className="space-y-4">
                     <h3 className="font-medium text-gray-900">
                       Información básica
@@ -449,7 +379,6 @@ export default function NewBookPage() {
                           name="title"
                           value={formData.title}
                           onChange={handleInputChange}
-                          placeholder="Ingresa el título del libro"
                           required
                         />
                       </div>
@@ -463,7 +392,6 @@ export default function NewBookPage() {
                           name="author"
                           value={formData.author}
                           onChange={handleInputChange}
-                          placeholder="Ingresa el nombre del autor"
                           required
                         />
                       </div>
@@ -479,7 +407,6 @@ export default function NewBookPage() {
                           name="isbn"
                           value={formData.isbn}
                           onChange={handleInputChange}
-                          placeholder="Ingresa ISBN (opcional)"
                         />
                       </div>
 
@@ -495,7 +422,6 @@ export default function NewBookPage() {
                           name="publisher"
                           value={formData.publisher}
                           onChange={handleInputChange}
-                          placeholder="Ingresa el nombre de la editorial"
                         />
                       </div>
                     </div>
@@ -506,7 +432,7 @@ export default function NewBookPage() {
                           htmlFor="publication_year"
                           className="text-sm font-medium"
                         >
-                          Año de publicación
+                          Año
                         </Label>
                         <Input
                           id="publication_year"
@@ -514,9 +440,6 @@ export default function NewBookPage() {
                           type="number"
                           value={formData.publication_year}
                           onChange={handleInputChange}
-                          placeholder="Ingresa el año"
-                          min="1000"
-                          max={new Date().getFullYear()}
                         />
                       </div>
 
@@ -530,8 +453,6 @@ export default function NewBookPage() {
                           type="number"
                           value={formData.pages}
                           onChange={handleInputChange}
-                          placeholder="Ingresa el número de páginas"
-                          min="1"
                         />
                       </div>
                     </div>
@@ -539,7 +460,6 @@ export default function NewBookPage() {
 
                   <Separator />
 
-                  {/* Categories */}
                   <div className="space-y-4">
                     <h3 className="font-medium text-gray-900">Categorías</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -564,37 +484,13 @@ export default function NewBookPage() {
                         </div>
                       ))}
                     </div>
-                    {selectedCategories.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {selectedCategories.map((categoryId) => {
-                          const category = categories.find(
-                            (c) => c.id === categoryId,
-                          );
-                          return category ? (
-                            <Badge key={categoryId} variant="secondary">
-                              {category.name}
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-auto p-0 ml-2"
-                                onClick={() => handleCategoryToggle(categoryId)}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </Badge>
-                          ) : null;
-                        })}
-                      </div>
-                    )}
                   </div>
 
                   <Separator />
 
-                  {/* Library Information */}
                   <div className="space-y-4">
                     <h3 className="font-medium text-gray-900">
-                      Información de biblioteca
+                      Ubicación y Estado
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -609,16 +505,12 @@ export default function NewBookPage() {
                           }
                         >
                           <SelectTrigger id="status">
-                            <SelectValue placeholder="Selecciona el estado" />
+                            <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="available">
-                              Disponible
-                            </SelectItem>
+                            <SelectItem value="available">Disponible</SelectItem>
                             <SelectItem value="borrowed">Prestado</SelectItem>
-                            <SelectItem value="maintenance">
-                              En mantenimiento
-                            </SelectItem>
+                            <SelectItem value="maintenance">Mantenimiento</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -628,22 +520,18 @@ export default function NewBookPage() {
                           htmlFor="location"
                           className="text-sm font-medium"
                         >
-                          Ubicación en biblioteca
+                          Ubicación
                         </Label>
                         <Input
                           id="location"
                           name="location"
                           value={formData.location}
                           onChange={handleInputChange}
-                          placeholder="Ingresa la ubicación del estante (ej: 'Estante A, Nivel 3')"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <Separator />
-
-                  {/* Description */}
                   <div className="space-y-2">
                     <Label
                       htmlFor="description"
@@ -656,12 +544,10 @@ export default function NewBookPage() {
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="Ingresa la descripción del libro"
                       rows={5}
                     />
                   </div>
 
-                  {/* Form Actions */}
                   <div className="flex justify-end gap-3 pt-4">
                     <Button type="button" variant="outline" asChild>
                       <Link href="/">Cancelar</Link>

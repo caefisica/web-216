@@ -1,6 +1,5 @@
 "use client";
 
-export const runtime = "edge";
 
 import type React from "react";
 
@@ -8,8 +7,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/components/auth/auth-provider";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
+import { getBookById, getCategories, updateBook, deleteBook, uploadImage, deleteBookImage, updateBookCategories, setBookCoverImage, addBookImage } from "@/lib/actions/books";
 import type { Category, BookImage } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
@@ -58,7 +57,8 @@ interface ImageUpload {
 }
 
 export default function EditBookPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { data: session, isPending: authLoading } = authClient.useSession();
+  const user = session?.user;
   const router = useRouter();
   const params = useParams();
   const bookId = params.id as string;
@@ -100,12 +100,7 @@ export default function EditBookPage() {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
+      const data = await getCategories();
       setCategories(data || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -119,23 +114,7 @@ export default function EditBookPage() {
 
   const fetchBookDetails = async () => {
     try {
-      // Fetch book details with categories and images
-      const { data: bookData, error: bookError } = await supabase
-        .from("books")
-        .select(
-          `
-          *,
-          book_categories (
-            category_id,
-            categories (*)
-          ),
-          book_images (*)
-        `,
-        )
-        .eq("id", bookId)
-        .single();
-
-      if (bookError) throw bookError;
+      const bookData = await getBookById(bookId);
 
       if (bookData) {
         setFormData({
@@ -152,11 +131,11 @@ export default function EditBookPage() {
 
         // Set selected categories
         const categoryIds =
-          bookData.book_categories?.map((bc: any) => bc.category_id) || [];
+          bookData.categories?.map((c: any) => c.id) || [];
         setSelectedCategories(categoryIds);
 
         // Set existing images
-        const images = bookData.book_images || [];
+        const images = bookData.images || [];
         setExistingImages(
           images.sort(
             (a: BookImage, b: BookImage) => a.display_order - b.display_order,
@@ -225,12 +204,7 @@ export default function EditBookPage() {
 
   const removeExistingImage = async (imageId: string) => {
     try {
-      const { error } = await supabase
-        .from("book_images")
-        .delete()
-        .eq("id", imageId);
-      if (error) throw error;
-
+      await deleteBookImage(imageId);
       setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
       toast({
         title: "Imagen eliminada",
@@ -253,21 +227,7 @@ export default function EditBookPage() {
   const setCoverImage = async (imageId: string, isExisting: boolean) => {
     try {
       if (isExisting) {
-        // Update existing images
-        const { error } = await supabase
-          .from("book_images")
-          .update({ is_cover: false })
-          .eq("book_id", bookId);
-
-        if (error) throw error;
-
-        const { error: setCoverError } = await supabase
-          .from("book_images")
-          .update({ is_cover: true })
-          .eq("id", imageId);
-
-        if (setCoverError) throw setCoverError;
-
+        await setBookCoverImage(bookId, imageId);
         setExistingImages((prev) =>
           prev.map((img) => ({ ...img, is_cover: img.id === imageId })),
         );
@@ -311,86 +271,37 @@ export default function EditBookPage() {
     setSubmitting(true);
 
     try {
-      // Convert numeric fields
-      const publication_year = formData.publication_year
-        ? Number.parseInt(formData.publication_year)
-        : null;
-      const pages = formData.pages ? Number.parseInt(formData.pages) : null;
-
       // Update book record
-      const { error: bookError } = await supabase
-        .from("books")
-        .update({
-          title: formData.title,
-          author: formData.author,
-          isbn: formData.isbn || null,
-          publisher: formData.publisher || null,
-          publication_year,
-          pages,
-          description: formData.description || null,
-          status: formData.status,
-          location: formData.location || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", bookId);
+      await updateBook(bookId, {
+        title: formData.title,
+        author: formData.author,
+        isbn: formData.isbn,
+        publisher: formData.publisher,
+        publicationYear: formData.publication_year,
+        pages: formData.pages,
+        description: formData.description,
+        status: formData.status,
+        location: formData.location,
+      });
 
-      if (bookError) throw bookError;
-
-      // Upload new images
+      // Add newly uploaded images to the database
       for (let i = 0; i < newImageUploads.length; i++) {
         const imageUpload = newImageUploads[i];
-        const fileExt = imageUpload.file.name.split(".").pop();
-        const fileName = `${bookId}_${Date.now()}_${i}.${fileExt}`;
-        const filePath = `book-images/${fileName}`;
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", imageUpload.file);
 
-        const { error: uploadError } = await supabase.storage
-          .from("books")
-          .upload(filePath, imageUpload.file);
+        const { url } = await uploadImage(uploadFormData);
 
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: publicUrlData } = supabase.storage
-          .from("books")
-          .getPublicUrl(filePath);
-
-        // Insert image record
-        const { error: imageError } = await supabase
-          .from("book_images")
-          .insert([
-            {
-              book_id: bookId,
-              image_url: publicUrlData.publicUrl,
-              is_cover: imageUpload.isCover,
-              alt_text: imageUpload.altText || null,
-              display_order: existingImages.length + i,
-            },
-          ]);
-
-        if (imageError) throw imageError;
+        await addBookImage(
+          bookId,
+          url,
+          imageUpload.isCover,
+          existingImages.length + i,
+        );
       }
 
       // Update categories
-      // First, delete existing category associations
-      const { error: deleteCategoriesError } = await supabase
-        .from("book_categories")
-        .delete()
-        .eq("book_id", bookId);
-
-      if (deleteCategoriesError) throw deleteCategoriesError;
-
-      // Then, insert new category associations
-      if (selectedCategories.length > 0) {
-        const categoryInserts = selectedCategories.map((categoryId) => ({
-          book_id: bookId,
-          category_id: categoryId,
-        }));
-
-        const { error: categoryError } = await supabase
-          .from("book_categories")
-          .insert(categoryInserts);
-        if (categoryError) throw categoryError;
-      }
+      await updateBookCategories(bookId, selectedCategories);
 
       toast({
         title: "Libro actualizado",
@@ -404,8 +315,7 @@ export default function EditBookPage() {
       console.error("Error updating book:", error);
       toast({
         title: "Error",
-        description:
-          "No se pudo actualizar el libro. Por favor, inténtalo de nuevo.",
+        description: "No se pudo actualizar el libro. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -415,9 +325,7 @@ export default function EditBookPage() {
 
   const handleDeleteBook = async () => {
     try {
-      const { error } = await supabase.from("books").delete().eq("id", bookId);
-
-      if (error) throw error;
+      await deleteBook(bookId);
 
       toast({
         title: "Libro eliminado",
