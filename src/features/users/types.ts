@@ -11,4 +11,5 @@ export interface User extends UserBase {
 
 export interface BorrowRequest extends BorrowRequestBase {
   book: BookDetailed | null;
+  user?: User;
 }

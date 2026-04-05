@@ -22,7 +22,7 @@ export const user = pgTable("user", {
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
   // Custom Domain Columns
-  role: text("role").default("user").notNull(), // 'user', 'librarian', 'admin', 'suspended'
+  role: text("role").$type<Role>().default("user").notNull(), // 'user', 'librarian', 'admin', 'suspended'
   totalDonations: numeric("total_donations").default("0").notNull(),
 });
 

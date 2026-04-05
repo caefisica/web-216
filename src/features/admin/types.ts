@@ -1,4 +1,6 @@
 import { BookDetailed } from "../books/types";
+import { BorrowRequest, User } from "../users/types";
+import { Role } from "@/lib/db/schema";
 
 export interface AdminStats {
   totalBooks: number;
@@ -10,20 +12,10 @@ export interface AdminStats {
   activeUsers: number;
 }
 
-export interface PendingRequest {
-  id: string;
-  requestDate: Date;
-  status: string;
-  bookId: string;
-  userId: string;
+export type PendingRequest = BorrowRequest & {
   book: BookDetailed;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    image?: string | null;
-  };
-}
+  user: User;
+};
 
 export interface BookStats {
   id: string;
@@ -40,7 +32,7 @@ export interface UserStats {
   name: string;
   email: string;
   borrowCount: number;
-  role: string;
+  role: Role;
 }
 
 export interface MonthlyStats {

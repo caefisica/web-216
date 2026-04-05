@@ -78,13 +78,15 @@ export const getPendingBorrowRequests = protectedAction(
         status: borrowRequests.status,
         bookId: borrowRequests.bookId,
         userId: borrowRequests.userId,
+        librarianId: borrowRequests.librarianId,
+        approvedDate: borrowRequests.approvedDate,
+        dueDate: borrowRequests.dueDate,
+        returnDate: borrowRequests.returnDate,
+        notes: borrowRequests.notes,
+        createdAt: borrowRequests.createdAt,
+        updatedAt: borrowRequests.updatedAt,
         book: books,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-        },
+        user: user,
       })
       .from(borrowRequests)
       .innerJoin(books, eq(borrowRequests.bookId, books.id))

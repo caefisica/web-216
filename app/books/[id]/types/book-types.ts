@@ -1,15 +1,6 @@
-export interface BookFormData {
-  title?: string;
-  author?: string;
-  isbn?: string;
-  publisher?: string;
-  publicationYear?: number | string;
-  pages?: number | string;
-  status?: string;
-  location?: string;
-  description?: string;
-  categoryId?: string;
-}
+import { Book } from "@/src/features/books/types";
+
+export type BookFormData = Partial<Book>;
 
 export interface BookInfoItemProps {
   icon: React.ComponentType<{ className?: string }>;
