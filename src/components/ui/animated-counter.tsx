@@ -47,6 +47,7 @@ export function AnimatedCounter({ value, duration = 1000, className = "" }: Anim
     };
 
     requestAnimationFrame(animate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration]);
 
   return (

@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "clean": "shx rm -rf .next node_modules bun.lock",
-    "db:seed": "bun --env-file .env.local app/supabase/seed.mjs",
+    "db:seed": "bun --env-file .env.local src/db/seed.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
