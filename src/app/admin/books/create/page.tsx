@@ -26,8 +26,8 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Save, Star, Upload, Trash2 } from "lucide-react";
-import { useDropzone } from "react-dropzone";
+import { Loader2, Save, Star, Trash2 } from "lucide-react";
+import { ImageDropzone } from "@/components/ui/image-dropzone";
 
 interface ImageUpload {
   id: string;
@@ -86,37 +86,29 @@ export default function NewBookPage() {
     }
   };
 
-  const onDrop = useCallback(
+  const handleImageDrop = useCallback(
     (acceptedFiles: File[]) => {
       acceptedFiles.forEach((file) => {
-        if (file.type.startsWith("image/")) {
-          const newImage: ImageUpload = {
-            id: Math.random().toString(36).substring(2, 15),
-            file,
-            preview: URL.createObjectURL(file),
-            isCover: imageUploads.length === 0,
-            altText: "",
-          };
-          setImageUploads((prev) => [...prev, newImage]);
-        } else {
-          toast({
-            title: "Tipo de archivo inválido",
-            description: "Por favor, sube archivos de imagen (JPEG, PNG, etc.)",
-            variant: "destructive",
-          });
-        }
+        const newImage: ImageUpload = {
+          id: Math.random().toString(36).substring(2, 15),
+          file,
+          preview: URL.createObjectURL(file),
+          isCover: imageUploads.length === 0,
+          altText: "",
+        };
+        setImageUploads((prev) => [...prev, newImage]);
       });
     },
     [imageUploads.length],
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
-    },
-    multiple: true,
-  });
+  const handleImageRejection = useCallback(() => {
+    toast({
+      title: "Archivo(s) rechazado(s)",
+      description: "Por favor, sube solo imágenes (JPEG, PNG, WebP) de tamaño permitido.",
+      variant: "destructive",
+    });
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -257,27 +249,7 @@ export default function NewBookPage() {
                   <CardTitle className="text-lg font-bold">Imágenes del libro</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div
-                    {...getRootProps()}
-                    className={`border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-8 cursor-pointer transition-all ${
-                      isDragActive
-                        ? "border-blue-400 bg-blue-50/50 scale-[1.02]"
-                        : "border-gray-200 hover:border-blue-400 hover:bg-gray-50/50"
-                    }`}
-                  >
-                    <input {...getInputProps()} />
-                    <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-                      <Upload className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-900 mb-1">
-                      {isDragActive ? "Suelta ahora" : "Subir imágenes"}
-                    </p>
-                    <p className="text-xs text-center text-gray-500 font-medium leading-relaxed">
-                      Arrastra y suelta o haz clic para seleccionar
-                      <br />
-                      (JPEG, PNG, WebP)
-                    </p>
-                  </div>
+                  <ImageDropzone onDrop={handleImageDrop} onRejection={handleImageRejection} />
 
                   {imageUploads.length > 0 && (
                     <div className="space-y-4">

@@ -42,8 +42,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { X, Loader2, Save, Trash2, Star, Upload, ChevronLeft } from "lucide-react";
-import { useDropzone } from "react-dropzone";
+import { X, Loader2, Save, Trash2, Star, ChevronLeft } from "lucide-react";
+import { ImageDropzone } from "@/components/ui/image-dropzone";
 
 interface ImageUpload {
   id: string;
@@ -141,31 +141,29 @@ export default function EditBookPage() {
     }
   }, [user, bookId, fetchBookDetails]);
 
-  const onDrop = useCallback(
+  const handleImageDrop = useCallback(
     (acceptedFiles: File[]) => {
       acceptedFiles.forEach((file) => {
-        if (file.type.startsWith("image/")) {
-          const newImage: ImageUpload = {
-            id: Math.random().toString(36).substring(2, 15),
-            file,
-            preview: URL.createObjectURL(file),
-            isCover: existingImages.length === 0 && newImageUploads.length === 0,
-            altText: "",
-          };
-          setNewImageUploads((prev) => [...prev, newImage]);
-        }
+        const newImage: ImageUpload = {
+          id: Math.random().toString(36).substring(2, 15),
+          file,
+          preview: URL.createObjectURL(file),
+          isCover: existingImages.length === 0 && newImageUploads.length === 0,
+          altText: "",
+        };
+        setNewImageUploads((prev) => [...prev, newImage]);
       });
     },
     [existingImages.length, newImageUploads.length],
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
-    },
-    multiple: true,
-  });
+  const handleImageRejection = useCallback(() => {
+    toast({
+      title: "Archivo(s) rechazado(s)",
+      description: "Por favor, sube solo imágenes (JPEG, PNG, WebP) de tamaño permitido.",
+      variant: "destructive",
+    });
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -318,7 +316,7 @@ export default function EditBookPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10 backdrop-blur-md bg-white/80">
+      <div className="border-b border-gray-100 sticky top-0 z-10 backdrop-blur-md bg-white/80">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -410,20 +408,12 @@ export default function EditBookPage() {
                       )}
                     </div>
                   ))}
-                  <div
-                    {...getRootProps()}
-                    className={`aspect-3/4 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-4 cursor-pointer transition-all ${
-                      isDragActive
-                        ? "border-blue-400 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-400 hover:bg-gray-50/50"
-                    }`}
-                  >
-                    <input {...getInputProps()} />
-                    <Upload className="h-6 w-6 text-gray-400 mb-2" />
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
-                      Añadir más
-                    </span>
-                  </div>
+                  <ImageDropzone
+                    onDrop={handleImageDrop}
+                    onRejection={handleImageRejection}
+                    label="Añadir más"
+                    className="aspect-3/4 p-4"
+                  />
                 </div>
 
                 {newImageUploads.length > 0 && (

@@ -168,7 +168,7 @@ export function UserManagement() {
 
   const getRoleBadgeVariant = (
     role: string,
-  ): "default" | "secondary" | "destructive" | "outline-solid" | null => {
+  ): "default" | "secondary" | "destructive" | "soft" | null => {
     switch (role) {
       case "admin":
         return "default";
@@ -177,7 +177,7 @@ export function UserManagement() {
       case "suspended":
         return "destructive";
       default:
-        return "outline-solid";
+        return "soft";
     }
   };
 

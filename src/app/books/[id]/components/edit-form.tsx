@@ -2,13 +2,15 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
-import { useDropzone } from "react-dropzone";
-import { Star, Upload, Trash2, Loader2, XCircle } from "lucide-react";
+import { ImageDropzone } from "@/components/ui/image-dropzone";
+import type { FileRejection } from "react-dropzone";
+import { Star, Trash2, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import type { BookFormData } from "../types/book-types";
 import { uploadBookImage, deleteBookImage } from "../actions";
 
@@ -61,7 +63,7 @@ export function EditForm({
 }: EditFormProps) {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
 
-  const onDrop = useCallback(
+  const handleImageDrop = useCallback(
     async (acceptedFiles: File[]) => {
       for (let i = 0; i < acceptedFiles.length; i++) {
         const file = acceptedFiles[i];
@@ -114,11 +116,19 @@ export function EditForm({
     [existingImages.length],
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "image/*": [".jpeg", ".png", ".jpg", ".webp"] },
-    maxSize: 5 * 1024 * 1024,
-  });
+  const handleImageRejection = useCallback((fileRejections: FileRejection[]) => {
+    const rejections: UploadedImage[] = fileRejections.map((rejection, i) => ({
+      id: `reject_${Date.now()}_${i}`,
+      url: "",
+      fileName: rejection.file.name,
+      isCover: false,
+      altText: "",
+      isUploading: false,
+      uploadError:
+        rejection.errors[0].code === "file-too-large" ? "Archivo muy grande" : "Tipo no válido",
+    }));
+    setUploadedImages((prev) => [...prev, ...rejections]);
+  }, []);
 
   const handleRemoveUploadedImage = async (imageId: string) => {
     const image = uploadedImages.find((img) => img.id === imageId);
@@ -133,16 +143,12 @@ export function EditForm({
       <h3 className="text-lg font-semibold">Editar información del libro</h3>
 
       {/* Dropzone */}
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${isDragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"}`}
-      >
-        <input {...getInputProps()} />
-        <div className="text-center">
-          <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-          <p className="text-sm text-gray-600">Arrastra imágenes o haz clic para seleccionar</p>
-        </div>
-      </div>
+      <ImageDropzone
+        onDrop={handleImageDrop}
+        onRejection={handleImageRejection}
+        description="Arrastra imágenes o haz clic para seleccionar"
+        className="p-6"
+      />
 
       {/* New Images */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -287,7 +293,7 @@ export function EditForm({
           {categories.map((c) => (
             <Badge
               key={c.id}
-              variant={selectedCategories.includes(c.id) ? "default" : "outline-solid"}
+              variant={selectedCategories.includes(c.id) ? "default" : "soft"}
               className="cursor-pointer"
               onClick={() => onCategoryToggle?.(c.id)}
             >
@@ -305,24 +311,5 @@ export function EditForm({
         {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Guardar Libro"}
       </Button>
     </div>
-  );
-}
-
-interface BadgeProps {
-  children: React.ReactNode;
-  variant?: "default" | "outline-solid";
-  className?: string;
-  onClick?: () => void;
-}
-
-function Badge({ children, variant, className, onClick }: BadgeProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer border-none ${variant === "default" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"} ${className || ""}`}
-    >
-      {children}
-    </button>
   );
 }
