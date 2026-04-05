@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, User } from "lucide-react";
-import type { BookDetailed } from "@/src/features/books/types";
+import type { BookDetailed } from "@/features/books/types";
 
 interface BookHeaderProps {
   book: BookDetailed;

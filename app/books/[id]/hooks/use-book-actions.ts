@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { TOAST_MESSAGES } from "../constants/book-constants";
-import type { User } from "@/src/features/users/types";
-import { createBorrowRequest, updateBook, toggleHeart } from "@/src/features/books/actions";
-import { UpdateBookSchema } from "@/src/features/books/schemas";
+import type { User } from "@/features/users/types";
+import { createBorrowRequest, updateBook, toggleHeart } from "@/features/books/actions";
+import { UpdateBookSchema } from "@/features/books/schemas";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import type { BookFormData } from "../types/book-types";

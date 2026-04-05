@@ -48,7 +48,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { Role } from "@/lib/db/schema";
-import type { User } from "@/src/features/users/types";
+import type { User } from "@/features/users/types";
 
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);

@@ -10,12 +10,8 @@ import type { BookFormData } from "./types/book-types";
 import { toast } from "@/hooks/use-toast";
 import { saveBookWithImages, deleteBookImage, setCoverImage } from "./actions";
 import { useRouter } from "next/navigation";
-import type {
-  BookDetailed,
-  Category,
-  BookImage as BookImageData,
-} from "@/src/features/books/types";
-import type { User } from "@/src/features/users/types";
+import type { BookDetailed, Category, BookImage as BookImageData } from "@/features/books/types";
+import type { User } from "@/features/users/types";
 import { useBookActions } from "./hooks/use-book-actions";
 
 interface BookClientProps {

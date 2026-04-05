@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { getFavoriteBooks, toggleHeart } from "@/src/features/books/actions";
-import { BookCard } from "@/src/features/books/components/book-card";
+import { getFavoriteBooks, toggleHeart } from "@/features/books/actions";
+import { BookCard } from "@/features/books/components/book-card";
 import { Heart, BookOpen, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
-import type { BookDetailed } from "@/src/features/books/types";
+import type { BookDetailed } from "@/features/books/types";
 
 export default function FavoritesPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();

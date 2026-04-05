@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDonors, getDonations, getDonationsStats } from "@/src/features/donors/actions";
-import type { Donor, Donation, DonationStats } from "@/src/features/donors/types";
+import { getDonors, getDonations, getDonationsStats } from "@/features/donors/actions";
+import type { Donor, Donation, DonationStats } from "@/features/donors/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";

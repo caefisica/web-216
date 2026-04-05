@@ -1,4 +1,4 @@
-import { Book } from "@/src/features/books/types";
+import { Book } from "@/features/books/types";
 
 export type BookFormData = Partial<Book>;
 

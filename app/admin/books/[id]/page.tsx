@@ -15,9 +15,9 @@ import {
   deleteBookImage,
   setCoverImage,
   addBookImage,
-} from "@/src/features/books/actions";
-import type { Category, BookImage } from "@/src/features/books/types";
-import type { User } from "@/src/features/users/types";
+} from "@/features/books/actions";
+import type { Category, BookImage } from "@/features/books/types";
+import type { User } from "@/features/users/types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

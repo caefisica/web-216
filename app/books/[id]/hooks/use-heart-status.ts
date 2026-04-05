@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { TOAST_MESSAGES } from "../constants/book-constants";
-import type { User } from "@/src/features/users/types";
-import { toggleHeart } from "@/src/features/books/actions";
+import type { User } from "@/features/users/types";
+import { toggleHeart } from "@/features/books/actions";
 
 export function useHeartStatus(user: User | null, bookId: string, initialHearted = false) {
   const [isHearted, setIsHearted] = useState(initialHearted);

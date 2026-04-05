@@ -11,7 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Heart, BookOpen } from "lucide-react";
-import type { BookDetailed } from "@/src/features/books/types";
+import type { BookDetailed } from "@/features/books/types";
 
 interface BookActionsProps {
   book: BookDetailed;

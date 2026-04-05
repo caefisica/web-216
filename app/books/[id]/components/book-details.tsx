@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import { Hash, Building, Calendar, BookOpen, MapPin, FileText } from "lucide-react";
-import type { BookDetailed } from "@/src/features/books/types";
+import type { BookDetailed } from "@/features/books/types";
 import type { BookInfoItemProps } from "../types/book-types";
 
 function BookInfoItem({ icon: Icon, label, value, className }: BookInfoItemProps) {

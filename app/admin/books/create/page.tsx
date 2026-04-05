@@ -6,14 +6,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import {
-  getCategories,
-  createBook,
-  uploadBookImage,
-  addBookImage,
-} from "@/src/features/books/actions";
-import type { Category } from "@/src/features/books/types";
-import type { User } from "@/src/features/users/types";
+import { getCategories, createBook, uploadBookImage, addBookImage } from "@/features/books/actions";
+import type { Category } from "@/features/books/types";
+import type { User } from "@/features/users/types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

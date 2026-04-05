@@ -4,7 +4,7 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { BookOpen, User, LogOut, Heart } from "lucide-react";
-import type { User as UserType } from "@/src/features/users/types";
+import type { User as UserType } from "@/features/users/types";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { getBookById } from "@/src/features/books/actions";
+import { getBookById } from "@/features/books/actions";
 import { toast } from "@/hooks/use-toast";
-import type { BookDetailed } from "@/src/features/books/types";
+import type { BookDetailed } from "@/features/books/types";
 
 export function useBookData(bookId: string) {
   const [book, setBook] = useState<BookDetailed | null>(null);

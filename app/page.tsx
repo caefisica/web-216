@@ -1,10 +1,10 @@
 import { getSession } from "@/lib/protected-action";
-import { getBooks, getCategories } from "@/src/features/books/actions";
-import { getAdminStats, getPendingBorrowRequests } from "@/src/features/admin/actions";
-import { BookCatalog } from "@/src/features/books/components/book-catalog";
-import { AdminDashboard } from "@/src/features/admin/components/admin-dashboard";
-import type { User } from "@/src/features/users/types";
-import type { BookDetailed } from "@/src/features/books/types";
+import { getBooks, getCategories } from "@/features/books/actions";
+import { getAdminStats, getPendingBorrowRequests } from "@/features/admin/actions";
+import { BookCatalog } from "@/features/books/components/book-catalog";
+import { AdminDashboard } from "@/features/admin/components/admin-dashboard";
+import type { User } from "@/features/users/types";
+import type { BookDetailed } from "@/features/books/types";
 
 export default async function HomePage() {
   const session = await getSession();
