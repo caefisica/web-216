@@ -119,14 +119,14 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">Contacto</h3>
             <div className="space-y-3">
               <div className="flex items-start">
-                <MapPin className="h-4 w-4 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                <MapPin className="h-4 w-4 text-gray-400 mr-3 mt-0.5 shrink-0" />
                 <div className="text-sm text-gray-600">
                   <p>Ambiente 216, Pabellón de Pregrado de la Facultad de Ciencias Físicas</p>
                   <p>Av. Germán Amézaga s/n</p>
                 </div>
               </div>
               <div className="flex items-center">
-                <Phone className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
+                <Phone className="h-4 w-4 text-gray-400 mr-3 shrink-0" />
                 <a
                   href="tel:+15551234567"
                   className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
@@ -135,7 +135,7 @@ export function Footer() {
                 </a>
               </div>
               <div className="flex items-center">
-                <Mail className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
+                <Mail className="h-4 w-4 text-gray-400 mr-3 shrink-0" />
                 <a
                   href="mailto:library@physics.university.edu"
                   className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
@@ -144,7 +144,7 @@ export function Footer() {
                 </a>
               </div>
               <div className="flex items-start">
-                <Clock className="h-4 w-4 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                <Clock className="h-4 w-4 text-gray-400 mr-3 mt-0.5 shrink-0" />
                 <div className="text-sm text-gray-600">
                   <p>Lun-Vie: 8AM-8PM</p>
                   <p>Sab: Consulta horarios especiales</p>

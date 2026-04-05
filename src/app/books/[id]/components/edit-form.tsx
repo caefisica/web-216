@@ -287,7 +287,7 @@ export function EditForm({
           {categories.map((c) => (
             <Badge
               key={c.id}
-              variant={selectedCategories.includes(c.id) ? "default" : "outline"}
+              variant={selectedCategories.includes(c.id) ? "default" : "outline-solid"}
               className="cursor-pointer"
               onClick={() => onCategoryToggle?.(c.id)}
             >
@@ -310,7 +310,7 @@ export function EditForm({
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: "default" | "outline";
+  variant?: "default" | "outline-solid";
   className?: string;
   onClick?: () => void;
 }

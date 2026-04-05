@@ -135,7 +135,7 @@ export function AdminDashboard({
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 transition-all font-semibold text-xs"
+                className="px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-xs data-[state=active]:text-blue-600 transition-all font-semibold text-xs"
               >
                 {tab.icon}
                 <span className="ml-2 hidden sm:inline">{tab.label}</span>
@@ -148,7 +148,7 @@ export function AdminDashboard({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Filtro rápido..."
-                className="h-12 pl-10 rounded-2xl bg-white border-gray-100 shadow-sm"
+                className="h-12 pl-10 rounded-2xl bg-white border-gray-100 shadow-xs"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && refreshBooks()}
@@ -164,7 +164,7 @@ export function AdminDashboard({
           </div>
         </div>
 
-        <TabsContent value="books" className="space-y-6 focus-visible:outline-none">
+        <TabsContent value="books" className="space-y-6 focus-visible:outline-hidden">
           {books.length === 0 ? (
             <div className="text-center py-20 bg-gray-50/50 rounded-3xl border border-dashed">
               <Filter className="h-12 w-12 mx-auto text-gray-300 mb-4" />
@@ -183,8 +183,8 @@ export function AdminDashboard({
           )}
         </TabsContent>
 
-        <TabsContent value="requests" className="focus-visible:outline-none">
-          <Card className="rounded-3xl border-gray-100 shadow-sm overflow-hidden">
+        <TabsContent value="requests" className="focus-visible:outline-hidden">
+          <Card className="rounded-3xl border-gray-100 shadow-xs overflow-hidden">
             <CardHeader className="bg-gray-50/50 border-b p-6">
               <CardTitle className="text-xl font-bold flex items-center gap-2">
                 <Clock className="h-6 w-6 text-orange-500" />
@@ -244,15 +244,15 @@ export function AdminDashboard({
           </Card>
         </TabsContent>
 
-        <TabsContent value="users" className="focus-visible:outline-none">
+        <TabsContent value="users" className="focus-visible:outline-hidden">
           <UserManagement />
         </TabsContent>
 
-        <TabsContent value="history" className="focus-visible:outline-none">
+        <TabsContent value="history" className="focus-visible:outline-hidden">
           <BorrowingTimeline />
         </TabsContent>
 
-        <TabsContent value="analytics" className="focus-visible:outline-none">
+        <TabsContent value="analytics" className="focus-visible:outline-hidden">
           <AdminStats />
         </TabsContent>
       </Tabs>

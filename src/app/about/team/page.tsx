@@ -83,7 +83,7 @@ export default function TeamPage() {
           {teamMembers.map((member, index) => (
             <Card key={index} className="overflow-hidden">
               <CardContent className="p-0">
-                <div className="aspect-square bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                <div className="aspect-square bg-linear-to-br from-blue-100 to-blue-200 flex items-center justify-center">
                   <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-2xl font-bold text-white">
                       {member.name

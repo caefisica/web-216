@@ -252,7 +252,7 @@ export default function NewBookPage() {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <div className="space-y-8">
-              <Card className="rounded-2xl shadow-sm border-gray-100">
+              <Card className="rounded-2xl shadow-xs border-gray-100">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold">Imágenes del libro</CardTitle>
                 </CardHeader>
@@ -291,7 +291,7 @@ export default function NewBookPage() {
                             className="relative border border-gray-100 rounded-2xl p-4 transition-all hover:shadow-md bg-white group"
                           >
                             <div className="flex items-start gap-4">
-                              <div className="relative w-20 h-24 flex-shrink-0 bg-gray-50 rounded-xl overflow-hidden border">
+                              <div className="relative w-20 h-24 shrink-0 bg-gray-50 rounded-xl overflow-hidden border">
                                 <Image
                                   src={imageUpload.preview || "/placeholder.svg"}
                                   alt={`Imagen ${index + 1}`}
@@ -335,7 +335,7 @@ export default function NewBookPage() {
                               </div>
                             </div>
                             {imageUpload.isCover && (
-                              <Badge className="absolute -top-2 -right-2 bg-yellow-500 hover:bg-yellow-600 shadow-sm border-none font-bold text-[10px]">
+                              <Badge className="absolute -top-2 -right-2 bg-yellow-500 hover:bg-yellow-600 shadow-xs border-none font-bold text-[10px]">
                                 PORTADA
                               </Badge>
                             )}
@@ -349,7 +349,7 @@ export default function NewBookPage() {
             </div>
 
             <div className="lg:col-span-2 space-y-8">
-              <Card className="rounded-2xl shadow-sm border-gray-100 overflow-hidden">
+              <Card className="rounded-2xl shadow-xs border-gray-100 overflow-hidden">
                 <CardHeader className="bg-gray-50/50 border-b">
                   <CardTitle className="text-lg font-bold">Información del libro</CardTitle>
                 </CardHeader>
