@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
-import { setupDevPlatform } from "@cloudflare/next-on-pages/next-dev";
 
 const nextConfig: NextConfig = {
   images: {
@@ -12,18 +11,36 @@ const nextConfig: NextConfig = {
     ],
   },
   pageExtensions: ["mdx", "ts", "tsx"],
+  outputFileTracingExcludes: {
+    "*": [
+      "node_modules/next/dist/server/capsize-font-metrics.json",
+      "node_modules/@better-auth/kysely-adapter/**/*",
+      "node_modules/@better-auth/mongo-adapter/**/*",
+      "node_modules/@better-auth/prisma-adapter/**/*",
+      "node_modules/@better-auth/memory-adapter/**/*",
+      "node_modules/better-auth/dist/adapters/kysely-adapter/**/*",
+      "node_modules/better-auth/dist/adapters/mongodb-adapter/**/*",
+      "node_modules/better-auth/dist/adapters/prisma-adapter/**/*",
+      "node_modules/better-auth/dist/adapters/memory-adapter/**/*",
+    ],
+  },
+  serverExternalPackages: [
+    "postgres",
+    "drizzle-orm",
+    "@better-auth/kysely-adapter",
+    "@better-auth/mongo-adapter",
+    "@better-auth/prisma-adapter",
+    "@better-auth/memory-adapter",
+  ],
   experimental: {
     mdxRs: true,
     viewTransition: true,
+    optimizePackageImports: ["lucide-react", "@aws-sdk/client-s3", "better-auth"],
   },
   typescript: {
     ignoreBuildErrors: true,
   },
 };
-
-if (process.env.NODE_ENV === "development") {
-  setupDevPlatform();
-}
 
 const withMDX = createMDX({});
 
