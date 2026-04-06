@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { books, bookImages, bookCategories } from "@/lib/db/schema";
-import { moveFile, deleteFile, getFileUrl, uploadFile } from "@/lib/s3";
+import { moveFile, deleteFile, getFileUrl, uploadFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { eq, desc } from "drizzle-orm";

@@ -17,4 +17,10 @@
       "service": "216",
     },
   ],
+  "r2_buckets": [
+    {
+      "bucket_name": "216-storage",
+      "binding": "_216_storage",
+    },
+  ],
 }
