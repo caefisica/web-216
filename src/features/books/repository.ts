@@ -194,7 +194,39 @@ export async function createBorrowRequestRecord(bookId: string, userId: string, 
 
 export async function listCategories() {
   const db = await getDb();
-  return db.select().from(categories).orderBy(categories.name);
+  try {
+    return await db.select().from(categories).orderBy(categories.name);
+  } catch (error) {
+    const err = error as {
+      message?: string;
+      cause?: {
+        message?: string;
+        code?: string;
+        detail?: string;
+        hint?: string;
+        where?: string;
+        schema?: string;
+        table?: string;
+        column?: string;
+      };
+    };
+    console.error("listCategories failed", {
+      message: err?.message,
+      cause: err?.cause
+        ? {
+            message: err.cause.message,
+            code: err.cause.code,
+            detail: err.cause.detail,
+            hint: err.cause.hint,
+            where: err.cause.where,
+            schema: err.cause.schema,
+            table: err.cause.table,
+            column: err.cause.column,
+          }
+        : null,
+    });
+    throw error;
+  }
 }
 
 export async function getBookImageById(imageId: string) {

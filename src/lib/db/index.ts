@@ -8,6 +8,20 @@ type Database = NodePgDatabase<typeof schema>;
 let dbPromise: Promise<Database> | undefined;
 let pool: Pool | undefined;
 
+function safeConnectionMeta(connectionString: string) {
+  try {
+    const url = new URL(connectionString);
+    return {
+      host: url.hostname,
+      port: url.port || "(default)",
+      database: url.pathname.replace(/^\//, "") || "(none)",
+      user: url.username || "(none)",
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function resolveConnectionString(): Promise<string> {
   try {
     const context = await getCloudflareContext({ async: true });
@@ -15,6 +29,7 @@ async function resolveConnectionString(): Promise<string> {
     const hyperdriveConnectionString = hyperdrive?.connectionString;
 
     if (hyperdriveConnectionString) {
+      console.info("db: using hyperdrive connection", safeConnectionMeta(hyperdriveConnectionString));
       return hyperdriveConnectionString;
     }
   } catch {
@@ -28,6 +43,7 @@ async function resolveConnectionString(): Promise<string> {
     );
   }
 
+  console.info("db: using DATABASE_URL connection", safeConnectionMeta(databaseUrl));
   return databaseUrl;
 }
 
