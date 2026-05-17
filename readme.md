@@ -6,11 +6,10 @@ El proyecto utiliza Supabase como sistema de gestión de base de datos. La base 
 
 Configura las siguientes variables en el archivo `.env.local`:
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`.
+- `DATABASE_URL`: La URL de conexión a la base de datos PostgreSQL (e.g., de Supabase).
+- `BETTER_AUTH_SECRET`: El secreto para la autenticación (puedes generarlo con `openssl rand -base64 32`).
+- `BETTER_AUTH_URL`: La URL base de la aplicación (e.g., `http://localhost:3000` para desarrollo).
 
-Para obtener estas variables, accede a tu proyecto en Supabase y haz clic en "Connect" junto al nombre del proyecto. Selecciona "App Frameworks" y copia el contenido del archivo `.env.local` que Supabase genera automáticamente. Para obtener `SUPABASE_SERVICE_ROLE_KEY`, navega a Settings → Project Settings → API keys y copia el valor de "service_role".
 
 ## Pasos de configuración
 
