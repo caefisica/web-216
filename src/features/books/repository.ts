@@ -49,7 +49,7 @@ export async function listBooks(filters: {
     );
   }
   if (filters.status && filters.status !== "all")
-    conditions.push(eq(books.status, filters.status as any));
+    conditions.push(eq(books.status, filters.status));
   if (filters.categoryId && filters.categoryId !== "all")
     conditions.push(eq(books.categoryId, filters.categoryId));
   if (conditions.length > 0) query.where(and(...conditions));
