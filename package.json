@@ -1,5 +1,6 @@
 {
   "private": true,
+  "type": "module",
   "scripts": {
     "clean": "shx rm -rf .next node_modules bun.lock",
     "db:sync": "bun --env-file .env.local src/lib/db/sync.ts",

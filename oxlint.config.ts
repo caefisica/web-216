@@ -1,14 +1,15 @@
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["nextjs", "typescript"],
-  "categories": {
-    "correctness": "off"
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  plugins: ["nextjs", "typescript"],
+  categories: {
+    correctness: "off",
   },
-  "env": {
-    "builtin": true
+  env: {
+    builtin: true,
   },
-  "ignorePatterns": ["components/ui/", ".next/**", "out/**", "build/**", "next-env.d.ts"],
-  "rules": {
+  ignorePatterns: ["components/ui/", ".next/**", "out/**", "build/**", "next-env.d.ts"],
+  rules: {
     "no-array-constructor": "error",
     "no-unused-expressions": "warn",
     "no-unused-vars": "warn",
@@ -49,12 +50,12 @@
     "typescript/no-wrapper-object-types": "error",
     "typescript/prefer-as-const": "error",
     "typescript/prefer-namespace-keyword": "error",
-    "typescript/triple-slash-reference": "error"
+    "typescript/triple-slash-reference": "error",
   },
-  "overrides": [
+  overrides: [
     {
-      "files": ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
-      "rules": {
+      files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
+      rules: {
         "react/display-name": "error",
         "react/jsx-key": "error",
         "react/jsx-no-comment-textnodes": "error",
@@ -76,9 +77,9 @@
         "jsx-a11y/alt-text": [
           "warn",
           {
-            "elements": ["img"],
-            "img": ["Image"]
-          }
+            elements: ["img"],
+            img: ["Image"],
+          },
         ],
         "jsx-a11y/aria-props": "warn",
         "jsx-a11y/aria-proptypes": "warn",
@@ -88,26 +89,26 @@
         "nextjs/no-html-link-for-pages": "warn",
         "nextjs/no-sync-scripts": "warn",
         "react/rules-of-hooks": "error",
-        "react/exhaustive-deps": "warn"
+        "react/exhaustive-deps": "warn",
       },
-      "globals": {
-        "AudioWorkletGlobalScope": "readonly",
-        "AudioWorkletProcessor": "readonly",
-        "currentFrame": "readonly",
-        "currentTime": "readonly",
-        "registerProcessor": "readonly",
-        "sampleRate": "readonly",
-        "WorkletGlobalScope": "readonly"
+      globals: {
+        AudioWorkletGlobalScope: "readonly",
+        AudioWorkletProcessor: "readonly",
+        currentFrame: "readonly",
+        currentTime: "readonly",
+        registerProcessor: "readonly",
+        sampleRate: "readonly",
+        WorkletGlobalScope: "readonly",
       },
-      "plugins": ["react", "import", "jsx-a11y"],
-      "env": {
-        "browser": true,
-        "node": true
-      }
+      plugins: ["react", "import", "jsx-a11y"],
+      env: {
+        browser: true,
+        node: true,
+      },
     },
     {
-      "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
-      "rules": {
+      files: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+      rules: {
         "constructor-super": "off",
         "no-class-assign": "off",
         "no-const-assign": "off",
@@ -125,8 +126,8 @@
         "no-with": "off",
         "prefer-const": "error",
         "prefer-rest-params": "error",
-        "prefer-spread": "error"
-      }
-    }
-  ]
-}
+        "prefer-spread": "error",
+      },
+    },
+  ],
+});
