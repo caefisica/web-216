@@ -9,5 +9,3 @@ export const siteConfig = {
     instagram: "https://www.instagram.com/caefisica",
   },
 };
-
-export type SiteConfig = typeof siteConfig;
