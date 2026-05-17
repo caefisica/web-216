@@ -1,7 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getCurrentSession, invalidateSession, deleteSessionTokenCookie } from "@/lib/auth/session";
+import {
+  getCurrentSession,
+  invalidateSession,
+  deleteSessionTokenCookie,
+} from "@/features/auth/core/session";
 
 export async function signOutAction(): Promise<void> {
   const { session } = await getCurrentSession();

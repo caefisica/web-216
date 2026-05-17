@@ -5,7 +5,7 @@ import { user, borrowRequests, books } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { protectedAction, authenticatedAction } from "@/lib/protected-action";
+import { protectedAction, authenticatedAction } from "@/features/auth/protected-action";
 
 // --- SCHEMAS ---
 

@@ -1,7 +1,7 @@
-import { getCurrentSession } from "@/lib/auth/session";
+import { getCurrentSession } from "@/features/auth/core/session";
 import { z } from "zod";
 import type { Role } from "@/lib/db/schema";
-import type { Session, AuthUser } from "@/lib/auth/session";
+import type { Session, AuthUser } from "@/features/auth/core/session";
 
 export type AuthSession = { session: Session; user: AuthUser };
 

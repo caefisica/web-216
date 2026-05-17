@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import type { BookFormData } from "../types/book-types";
-import { uploadBookImage, deleteBookImage } from "../actions";
+import { uploadBookImage, deleteBookImage } from "@/features/books/actions/editor";
 
 interface UploadedImage {
   id: string;

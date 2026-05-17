@@ -2,7 +2,10 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
-import { verifyEmailAction, resendVerificationEmailAction } from "./actions";
+import {
+  verifyEmailAction,
+  resendVerificationEmailAction,
+} from "@/features/auth/actions/verify-email";
 import { isErr } from "@/lib/result";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

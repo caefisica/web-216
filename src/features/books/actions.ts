@@ -13,7 +13,7 @@ import { eq, ilike, or, and, sql, desc, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { deleteFile, uploadFile } from "@/lib/storage";
 import { z } from "zod";
-import { authenticatedAction, protectedAction, getSession } from "@/lib/protected-action";
+import { authenticatedAction, protectedAction, getSession } from "@/features/auth/protected-action";
 import { BookIdSchema, SearchSchema, UpdateBookSchema, CreateBookSchema } from "./schemas";
 import { Ok, Err } from "@/lib/result";
 

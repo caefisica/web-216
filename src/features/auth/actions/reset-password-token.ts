@@ -5,9 +5,9 @@ import {
   validatePasswordResetToken,
   invalidatePasswordResetSession,
   deletePasswordResetCookie,
-} from "@/lib/auth/password-reset";
-import { updateUserPassword } from "@/lib/auth/session";
-import { verifyPasswordStrength } from "@/lib/auth/password";
+} from "@/features/auth/core/password-reset";
+import { updateUserPassword } from "@/features/auth/core/session";
+import { verifyPasswordStrength } from "@/features/auth/core/password";
 import { isErr } from "@/lib/result";
 
 type FormState = { error: string } | null;

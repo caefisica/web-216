@@ -8,7 +8,7 @@ import {
   createPasswordResetSession,
   sendPasswordResetEmail,
   setPasswordResetCookie,
-} from "@/lib/auth/password-reset";
+} from "@/features/auth/core/password-reset";
 
 type FormState = { error: string } | { sent: true } | null;
 

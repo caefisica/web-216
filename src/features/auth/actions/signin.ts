@@ -7,9 +7,9 @@ import {
   generateSessionToken,
   createSession,
   setSessionTokenCookie,
-} from "@/lib/auth/session";
-import { verifyPasswordHash } from "@/lib/auth/password";
-import { Throttler, RefillingTokenBucket } from "@/lib/auth/rate-limit";
+} from "@/features/auth/core/session";
+import { verifyPasswordHash } from "@/features/auth/core/password";
+import { Throttler, RefillingTokenBucket } from "@/features/auth/core/rate-limit";
 import { isErr } from "@/lib/result";
 
 const loginThrottler = new Throttler<string>([1, 2, 4, 8, 16, 30, 60, 180, 300]);

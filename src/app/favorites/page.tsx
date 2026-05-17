@@ -1,4 +1,4 @@
-import { getCurrentSession } from "@/lib/auth/session";
+import { getCurrentSession } from "@/features/auth/core/session";
 import { redirect } from "next/navigation";
 import { FavoritesClient } from "./favorites-client";
 

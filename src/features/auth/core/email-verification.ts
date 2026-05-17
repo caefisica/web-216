@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { emailVerificationRequest as evTable } from "@/lib/db/schema";
-import { setUserEmailVerified } from "@/lib/auth/session";
+import { setUserEmailVerified } from "@/features/auth/core/session";
 import { Ok, Err, isErr, type Result } from "@/lib/result";
 import { ExpiringTokenBucket } from "./rate-limit";
 import { generateOTP } from "./otp";

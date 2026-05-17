@@ -1,6 +1,6 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
-import { hashPassword } from "@/lib/auth/password";
+import { hashPassword } from "@/features/auth/core/password";
 
 const SEED_USERS = [
   { email: "admin@unmsm.edu.pe", name: "Admin", role: "admin" as const },

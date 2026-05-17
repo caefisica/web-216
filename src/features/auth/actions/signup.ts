@@ -10,15 +10,15 @@ import {
   generateSessionToken,
   createSession,
   setSessionTokenCookie,
-} from "@/lib/auth/session";
-import { verifyPasswordStrength } from "@/lib/auth/password";
+} from "@/features/auth/core/session";
+import { verifyPasswordStrength } from "@/features/auth/core/password";
 import {
   createEmailVerificationRequest,
   sendVerificationEmail,
   sendVerificationEmailBucket,
   setEmailVerificationCookie,
-} from "@/lib/auth/email-verification";
-import { RefillingTokenBucket } from "@/lib/auth/rate-limit";
+} from "@/features/auth/core/email-verification";
+import { RefillingTokenBucket } from "@/features/auth/core/rate-limit";
 
 const signupIpBucket = new RefillingTokenBucket<string>(3, 10);
 

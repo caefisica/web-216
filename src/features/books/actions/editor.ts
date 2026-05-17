@@ -1,6 +1,6 @@
 "use server";
 
-import { getCurrentSession } from "@/lib/auth/session";
+import { getCurrentSession } from "@/features/auth/core/session";
 import { getDb } from "@/lib/db";
 import { books, bookImages, bookCategories } from "@/lib/db/schema";
 import { moveFile, deleteFile, getFileUrl, uploadFile } from "@/lib/storage";

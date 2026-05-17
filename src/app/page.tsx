@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/protected-action";
+import { getSession } from "@/features/auth/protected-action";
 import { getBooks, getCategories } from "@/features/books/actions";
 import { getAdminStats, getPendingBorrowRequests } from "@/features/admin/actions";
 import { BookCatalog } from "@/features/books/components/book-catalog";

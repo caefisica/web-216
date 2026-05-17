@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getCurrentSession } from "@/lib/auth/session";
+import { getCurrentSession } from "@/features/auth/core/session";
 import {
   verifyEmailCode,
   createEmailVerificationRequest,
@@ -10,7 +10,7 @@ import {
   sendVerificationEmailBucket,
   setEmailVerificationCookie,
   deleteEmailVerificationCookie,
-} from "@/lib/auth/email-verification";
+} from "@/features/auth/core/email-verification";
 import { Ok, Err, isErr, type Result } from "@/lib/result";
 
 type FormState = { error: string } | null;

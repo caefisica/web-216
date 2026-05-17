@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { signOutAction } from "@/app/auth/actions";
+import { signOutAction } from "@/features/auth/actions/session";
 import { Button } from "@/components/ui/button";
 import { BookOpen, User, LogOut, Heart } from "lucide-react";
-import type { AuthUser } from "@/lib/auth/session";
+import type { AuthUser } from "@/features/auth/core/session";
 import {
   DropdownMenu,
   DropdownMenuContent,

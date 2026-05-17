@@ -8,7 +8,11 @@ import { BookDetails } from "./components/book-details";
 import { EditForm } from "./components/edit-form";
 import type { BookFormData } from "./types/book-types";
 import { toast } from "@/hooks/use-toast";
-import { saveBookWithImages, deleteBookImage, setCoverImage } from "./actions";
+import {
+  saveBookWithImages,
+  deleteBookImage,
+  setCoverImage,
+} from "@/features/books/actions/editor";
 import { useRouter } from "next/navigation";
 import type { BookDetailed, Category, BookImage as BookImageData } from "@/features/books/types";
 import type { User } from "@/features/users/types";

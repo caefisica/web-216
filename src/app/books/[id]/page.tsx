@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/protected-action";
+import { getSession } from "@/features/auth/protected-action";
 import { getBookById, getCategories } from "@/features/books/actions";
 import BookClient from "./book-client";
 import { NotFoundState } from "./components/not-found-state";
