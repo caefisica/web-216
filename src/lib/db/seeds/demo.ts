@@ -1,4 +1,4 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
 import { hashPassword } from "@/lib/auth/password";
 
@@ -8,7 +8,7 @@ const SEED_USERS = [
   { email: "student@unmsm.edu.pe", name: "Student", role: "user" as const },
 ];
 
-export async function runDemoSeed(db: PostgresJsDatabase<typeof schema>) {
+export async function runDemoSeed(db: NodePgDatabase<typeof schema>) {
   console.log("Seeding demo users...");
 
   const password = process.env.SEED_PASSWORD ?? "password123";

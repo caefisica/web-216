@@ -3,7 +3,7 @@ import { sha256 } from "@oslojs/crypto/sha2";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { session as sessionTable, user as userTable } from "@/lib/db/schema";
 import { hashPassword } from "./password";
 import type { Role } from "@/lib/db/schema";
@@ -34,6 +34,7 @@ export function generateSessionToken(): string {
 }
 
 export async function createSession(token: string, userId: string): Promise<Session> {
+  const db = await getDb();
   const id = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   await db.insert(sessionTable).values({ id, userId, expiresAt });
@@ -41,6 +42,7 @@ export async function createSession(token: string, userId: string): Promise<Sess
 }
 
 export async function validateSessionToken(token: string): Promise<SessionValidationResult> {
+  const db = await getDb();
   const id = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 
   const rows = await db
@@ -88,6 +90,7 @@ export const getCurrentSession = cache(async (): Promise<SessionValidationResult
 });
 
 export async function invalidateSession(sessionId: string): Promise<void> {
+  const db = await getDb();
   await db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
 }
 
@@ -116,6 +119,7 @@ export async function deleteSessionTokenCookie(): Promise<void> {
 export async function getUserFromEmail(
   email: string,
 ): Promise<Result<AuthUser & { passwordHash: string }, "not_found">> {
+  const db = await getDb();
   const rows = await db.select().from(userTable).where(eq(userTable.email, email)).limit(1);
   if (rows.length === 0) return Err("not_found");
   const u = rows[0];
@@ -130,6 +134,7 @@ export async function getUserFromEmail(
 }
 
 export async function createUser(email: string, name: string, password: string): Promise<AuthUser> {
+  const db = await getDb();
   const passwordHash = await hashPassword(password);
   const id = crypto.randomUUID();
   const [u] = await db
@@ -146,10 +151,12 @@ export async function createUser(email: string, name: string, password: string):
 }
 
 export async function updateUserPassword(userId: string, password: string): Promise<void> {
+  const db = await getDb();
   const passwordHash = await hashPassword(password);
   await db.update(userTable).set({ passwordHash }).where(eq(userTable.id, userId));
 }
 
 export async function setUserEmailVerified(userId: string): Promise<void> {
+  const db = await getDb();
   await db.update(userTable).set({ emailVerified: true }).where(eq(userTable.id, userId));
 }

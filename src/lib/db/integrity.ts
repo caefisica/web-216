@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync, lstatSync } from "node:fs";
 import { join, relative } from "node:path";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
 function hashDirectory(dir: string): string {
@@ -39,7 +39,7 @@ async function digest(input: string): Promise<string> {
 }
 
 export async function readStoredIntegrity(
-  db: PostgresJsDatabase<typeof schema>,
+  db: NodePgDatabase<typeof schema>,
 ): Promise<{ schemaHash: string | null; seedHash: string | null }> {
   try {
     const [result] = await db.select().from(schema.schemaIntegrity).limit(1);
@@ -53,7 +53,7 @@ export async function readStoredIntegrity(
 }
 
 export async function writeStoredIntegrity(
-  db: PostgresJsDatabase<typeof schema>,
+  db: NodePgDatabase<typeof schema>,
   hashes: { schemaHash: string; seedHash: string },
 ): Promise<void> {
   await db.transaction(async (tx) => {

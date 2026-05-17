@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { books, borrowRequests, user, userBookHearts } from "@/lib/db/schema";
 import { eq, sql, gte, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -20,6 +20,7 @@ const BorrowStatusSchema = z.object({
  * Fetches high-level library statistics for the admin dashboard.
  */
 export const getAdminStats = protectedAction(z.void(), ["librarian", "admin"], async () => {
+  const db = await getDb();
   const [
     totalBooks,
     availableBooks,
@@ -71,6 +72,7 @@ export const getPendingBorrowRequests = protectedAction(
   z.void(),
   ["librarian", "admin"],
   async () => {
+    const db = await getDb();
     const requests = await db
       .select({
         id: borrowRequests.id,
@@ -102,6 +104,7 @@ export const getPendingBorrowRequests = protectedAction(
  * Fetches detailed analytics including popular books and monthly trends.
  */
 export const getDetailedAdminStats = protectedAction(z.void(), ["librarian", "admin"], async () => {
+  const db = await getDb();
   const bookActivity = await db
     .select({
       id: books.id,
@@ -194,6 +197,7 @@ export const getBorrowingHistory = protectedAction(
   z.object({ limit: z.number().default(50) }),
   ["librarian", "admin"],
   async ({ limit }) => {
+    const db = await getDb();
     const results = await db
       .select({
         id: borrowRequests.id,
@@ -221,6 +225,7 @@ export const updateBorrowStatus = protectedAction(
   BorrowStatusSchema,
   ["librarian", "admin"],
   async ({ requestId, status }, session) => {
+    const db = await getDb();
     const updateData: Partial<typeof borrowRequests.$inferInsert> = {
       status,
       librarianId: session.user.id,

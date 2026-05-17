@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { user as userTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import {
@@ -16,6 +16,7 @@ export async function requestPasswordResetAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const db = await getDb();
   const email = formData.get("email");
   if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "Correo electrónico inválido." };

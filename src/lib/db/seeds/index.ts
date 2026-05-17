@@ -1,9 +1,9 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
 import { runBootstrapSeed } from "./bootstrap";
 import { runDemoSeed } from "./demo";
 
-export async function runSeeds(db: PostgresJsDatabase<typeof schema>) {
+export async function runSeeds(db: NodePgDatabase<typeof schema>) {
   console.log("Starting seeds...");
   await runBootstrapSeed(db);
   if (process.env.NODE_ENV !== "production") {

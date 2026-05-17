@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { user, borrowRequests, books } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -24,6 +24,7 @@ const ProfileUpdateSchema = z.object({
  * Fetches all users. Requires librarian or admin roles.
  */
 export const getAllUsers = protectedAction(z.void(), ["librarian", "admin"], async () => {
+  const db = await getDb();
   return await db.select().from(user).orderBy(desc(user.createdAt));
 });
 
@@ -31,6 +32,7 @@ export const getAllUsers = protectedAction(z.void(), ["librarian", "admin"], asy
  * Fetches the current user's borrowing activity.
  */
 export const getUserActivity = authenticatedAction(z.void(), async (_, session) => {
+  const db = await getDb();
   const activity = await db
     .select({
       id: borrowRequests.id,
@@ -59,6 +61,7 @@ export const getUserActivity = authenticatedAction(z.void(), async (_, session) 
  * Updates the current user's profile information.
  */
 export const updateUserProfile = authenticatedAction(ProfileUpdateSchema, async (data, session) => {
+  const db = await getDb();
   const [updatedUser] = await db
     .update(user)
     .set(data)
@@ -76,6 +79,7 @@ export const updateUserRole = protectedAction(
   RoleUpdateSchema,
   ["admin"],
   async ({ userId, newRole }) => {
+    const db = await getDb();
     await db.update(user).set({ role: newRole }).where(eq(user.id, userId));
 
     revalidatePath("/");
@@ -90,6 +94,7 @@ export const suspendUser = protectedAction(
   z.object({ userId: z.string() }),
   ["admin"],
   async ({ userId }) => {
+    const db = await getDb();
     await db.update(user).set({ role: "suspended" }).where(eq(user.id, userId));
 
     revalidatePath("/");

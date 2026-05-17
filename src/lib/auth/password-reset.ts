@@ -3,7 +3,7 @@ import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeBase32LowerCaseNoPadding } from "@oslojs/encoding";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { passwordResetSession as prsTable, user as userTable } from "@/lib/db/schema";
 import { Ok, Err, type Result } from "@/lib/result";
 import { generateOTP } from "./otp";
@@ -27,6 +27,7 @@ export async function createPasswordResetSession(
   userId: string,
   email: string,
 ): Promise<PasswordResetSession> {
+  const db = await getDb();
   const id = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
   const code = generateOTP();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
@@ -44,6 +45,7 @@ export async function validatePasswordResetToken(
     "not_found" | "expired"
   >
 > {
+  const db = await getDb();
   const id = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 
   const rows = await db
@@ -78,6 +80,7 @@ export async function validatePasswordResetToken(
 }
 
 export async function invalidatePasswordResetSession(userId: string): Promise<void> {
+  const db = await getDb();
   await db.delete(prsTable).where(eq(prsTable.userId, userId));
 }
 

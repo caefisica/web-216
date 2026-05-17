@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { donors, donations } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 
@@ -8,6 +8,7 @@ import { eq, desc, sql } from "drizzle-orm";
  * Fetches all donors, ordered by creation date.
  */
 export async function getDonors() {
+  const db = await getDb();
   return await db.select().from(donors).orderBy(desc(donors.createdAt));
 }
 
@@ -15,6 +16,7 @@ export async function getDonors() {
  * Fetches all donations with associated donor names.
  */
 export async function getDonations() {
+  const db = await getDb();
   const allDonations = await db
     .select({
       id: donations.id,
@@ -42,6 +44,7 @@ export async function getDonations() {
  * Fetches high-level donation statistics.
  */
 export async function getDonationsStats() {
+  const db = await getDb();
   const [stats] = await db
     .select({
       totalBooks: sql<number>`count(${donations.id})`,

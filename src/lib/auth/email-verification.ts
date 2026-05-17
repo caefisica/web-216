@@ -1,7 +1,7 @@
 import { encodeBase32LowerCaseNoPadding } from "@oslojs/encoding";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { emailVerificationRequest as evTable } from "@/lib/db/schema";
 import { setUserEmailVerified } from "@/lib/auth/session";
 import { Ok, Err, isErr, type Result } from "@/lib/result";
@@ -22,6 +22,7 @@ export async function createEmailVerificationRequest(
   userId: string,
   email: string,
 ): Promise<EmailVerificationRequest> {
+  const db = await getDb();
   await db.delete(evTable).where(eq(evTable.userId, userId));
 
   const idBytes = new Uint8Array(20);
@@ -38,6 +39,7 @@ export async function getEmailVerificationRequest(
   userId: string,
   id: string,
 ): Promise<Result<EmailVerificationRequest, "not_found">> {
+  const db = await getDb();
   const rows = await db.select().from(evTable).where(eq(evTable.id, id)).limit(1);
   if (rows.length === 0) return Err("not_found");
   const r = rows[0];
@@ -46,6 +48,7 @@ export async function getEmailVerificationRequest(
 }
 
 export async function deleteUserEmailVerificationRequests(userId: string): Promise<void> {
+  const db = await getDb();
   await db.delete(evTable).where(eq(evTable.userId, userId));
 }
 

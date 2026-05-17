@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { user as userTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import {
@@ -25,6 +25,7 @@ const signupIpBucket = new RefillingTokenBucket<string>(3, 10);
 type FormState = { error: string } | null;
 
 export async function signUpAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const db = await getDb();
   const name = formData.get("name");
   const email = formData.get("email");
   const password = formData.get("password");

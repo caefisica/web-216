@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   books,
   categories,
@@ -22,6 +22,7 @@ import { Ok, Err } from "@/lib/result";
  * Publicly accessible but returns user-specific 'isHearted' status if logged in.
  */
 export async function getBooks(filters?: z.infer<typeof SearchSchema>) {
+  const db = await getDb();
   const session = await getSession();
   const parsedFilters = SearchSchema.parse(filters || {});
 
@@ -116,6 +117,7 @@ export async function getBooks(filters?: z.infer<typeof SearchSchema>) {
 }
 
 export async function getFavoriteBooks() {
+  const db = await getDb();
   const session = await getSession();
   if (!session.user) return [];
 
@@ -183,6 +185,7 @@ export async function getFavoriteBooks() {
 }
 
 export async function getBookById(id: string) {
+  const db = await getDb();
   const session = await getSession();
 
   const booksData = await db
@@ -247,6 +250,7 @@ export async function getBookById(id: string) {
 }
 
 export const toggleHeart = authenticatedAction(BookIdSchema, async ({ bookId }, session) => {
+  const db = await getDb();
   const existing = await db
     .select()
     .from(userBookHearts)
@@ -270,6 +274,7 @@ export const toggleHeart = authenticatedAction(BookIdSchema, async ({ bookId }, 
 export const createBorrowRequest = authenticatedAction(
   z.object({ bookId: z.uuid(), note: z.string().optional() }),
   async ({ bookId, note }, session) => {
+    const db = await getDb();
     await db.insert(borrowRequests).values({
       id: crypto.randomUUID(),
       bookId,
@@ -283,6 +288,7 @@ export const createBorrowRequest = authenticatedAction(
 );
 
 export async function getCategories() {
+  const db = await getDb();
   return await db.select().from(categories).orderBy(categories.name);
 }
 
@@ -306,6 +312,7 @@ export const deleteBookImage = protectedAction(
   z.object({ imageId: z.uuid(), bookId: z.uuid() }),
   ["librarian", "admin"],
   async ({ imageId }) => {
+    const db = await getDb();
     const [img] = await db.select().from(bookImages).where(eq(bookImages.id, imageId)).limit(1);
 
     if (img && img.imageUrl.includes("book-images")) {
@@ -328,6 +335,7 @@ export const setCoverImage = protectedAction(
   z.object({ imageId: z.uuid(), bookId: z.uuid(), isExisting: z.boolean() }),
   ["librarian", "admin"],
   async ({ imageId, bookId }) => {
+    const db = await getDb();
     await db.update(bookImages).set({ isCover: false }).where(eq(bookImages.bookId, bookId));
     await db.update(bookImages).set({ isCover: true }).where(eq(bookImages.id, imageId));
 
@@ -351,6 +359,7 @@ export const addBookImage = protectedAction(
   }),
   ["librarian", "admin"],
   async ({ bookId, imageUrl, isCover, displayOrder }) => {
+    const db = await getDb();
     if (isCover) {
       await db.update(bookImages).set({ isCover: false }).where(eq(bookImages.bookId, bookId));
       await db.update(books).set({ imageUrl }).where(eq(books.id, bookId));
@@ -375,6 +384,7 @@ export const deleteBook = protectedAction(
   BookIdSchema,
   ["librarian", "admin"],
   async ({ bookId }) => {
+    const db = await getDb();
     const images = await db.select().from(bookImages).where(eq(bookImages.bookId, bookId));
 
     for (const img of images) {
@@ -394,6 +404,7 @@ export const updateBook = protectedAction(
   UpdateBookSchema,
   ["librarian", "admin"],
   async (data) => {
+    const db = await getDb();
     await db
       .update(books)
       .set({
@@ -421,6 +432,7 @@ export const createBook = protectedAction(
   CreateBookSchema,
   ["librarian", "admin"],
   async (data) => {
+    const db = await getDb();
     const bookId = crypto.randomUUID();
 
     await db.insert(books).values({

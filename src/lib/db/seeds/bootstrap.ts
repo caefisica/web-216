@@ -1,4 +1,4 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
 
 const CATEGORIES = [
@@ -11,7 +11,7 @@ const CATEGORIES = [
   { name: "Solid State Physics" },
 ];
 
-export async function runBootstrapSeed(db: PostgresJsDatabase<typeof schema>) {
+export async function runBootstrapSeed(db: NodePgDatabase<typeof schema>) {
   console.log("Seeding categories...");
   for (const cat of CATEGORIES) {
     await db.insert(schema.categories).values({ name: cat.name }).onConflictDoNothing();

@@ -1,6 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { sql } from "drizzle-orm";
+import { Pool } from "pg";
 import * as schema from "./schema";
 import { runSeeds } from "./seeds";
 import { computeHashes, readStoredIntegrity, writeStoredIntegrity } from "./integrity";
@@ -13,8 +13,8 @@ export async function sync() {
     process.exit(1);
   }
 
-  const client = postgres(connectionString, { max: 1 });
-  const db = drizzle(client, { schema });
+  const pool = new Pool({ connectionString, max: 1 });
+  const db = drizzle({ client: pool, schema });
 
   console.log("Checking database sync...");
 
@@ -23,7 +23,7 @@ export async function sync() {
 
   if (stored.schemaHash === schemaHash && stored.seedHash === seedHash) {
     console.log("Database is up to date (hash matches).");
-    await client.end();
+    await pool.end();
     return;
   }
 
@@ -54,7 +54,7 @@ export async function sync() {
     console.error("Database sync failed:", error);
     process.exit(1);
   } finally {
-    await client.end();
+    await pool.end();
   }
 }
 

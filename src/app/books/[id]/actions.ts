@@ -1,7 +1,7 @@
 "use server";
 
 import { getCurrentSession } from "@/lib/auth/session";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { books, bookImages, bookCategories } from "@/lib/db/schema";
 import { moveFile, deleteFile, getFileUrl, uploadFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
@@ -75,6 +75,7 @@ export async function moveImageFromTemp(
 
 export async function saveBookWithImages(data: SaveBookData) {
   try {
+    const db = await getDb();
     const { user } = await getCurrentSession();
     if (!user) throw new Error("Unauthorized");
 
@@ -157,6 +158,7 @@ export async function cleanupTempFiles(fileNames: string[]) {
 
 export async function deleteBookImage(imageId: string, bookId: string) {
   try {
+    const db = await getDb();
     const { user } = await getCurrentSession();
     if (!user) throw new Error("Unauthorized");
 
@@ -185,6 +187,7 @@ export async function deleteBookImage(imageId: string, bookId: string) {
 
 export async function setCoverImage(imageId: string, bookId: string, isExisting: boolean) {
   try {
+    const db = await getDb();
     const { user } = await getCurrentSession();
     if (!user) throw new Error("Unauthorized");
 
