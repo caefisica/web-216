@@ -1,42 +1,42 @@
-# Biblioteca 216
+# 216
 
-El proyecto utiliza Supabase como sistema de gestión de base de datos. La base de datos de producción no está disponible para desarrollo local por motivos de seguridad, por lo que debes crear tu propia instancia en tu cuenta personal de Supabase (puedes usar tu cuenta de GitHub). Cuando realices commits o crees branches en el repositorio, el CI construirá la aplicación utilizando la base de datos de producción.
+[![CodeQL](https://github.com/caefisica/216/actions/workflows/analyze_codeql.yml/badge.svg)](https://github.com/caefisica/216/actions/workflows/analyze_codeql.yml)
 
-## Variables de entorno requeridas
+Library catalogue and loan tracker for the physics undergrad library at UNMSM's Faculty of Physical Sciences.
 
-Configura las siguientes variables en el archivo `.env.local`:
-
-- `DATABASE_URL`: La URL de conexión a la base de datos PostgreSQL (e.g., de Supabase).
-- `BETTER_AUTH_SECRET`: El secreto para la autenticación (puedes generarlo con `openssl rand -base64 32`).
-- `BETTER_AUTH_URL`: La URL base de la aplicación (e.g., `http://localhost:3000` para desarrollo).
-
-
-## Pasos de configuración
-
-Clona el repositorio e instala las dependencias:
+## Get started
 
 ```bash
-git clone https://github.com/caefisica/lib216-beta
-cd lib216-beta
 bun install
+cp .env.example .env.local
 ```
 
-Aplica el schema accediendo al panel de control de tu proyecto en Supabase. Navega a "SQL Editor" en la sección Database, haz clic en "+ New query", abre el archivo `supabase/schema.sql` del repositorio clonado, copia todo su contenido, pégalo en el editor SQL de Supabase y haz clic en "RUN". Este proceso crea todas las tablas, funciones y políticas RLS necesarias. Solo debes ejecutarlo una vez por proyecto de Supabase.
-
-Popula la base de datos con datos de prueba ejecutando:
+Open `.env.local` and fill in `DATABASE_URL`. Then start the dev server. Schema sync and seeding run automatically on first start:
 
 ```bash
-npm run db:seed
+bun run dev
 ```
 
-Este script elimina datos existentes en las tablas públicas (users, books, etc.) e inserta datos de muestra actualizados, incluyendo usuarios de autenticación para pruebas.
+## Environment variables
 
-Inicia el servidor de desarrollo:
+| Variable        | Description                              |
+| --------------- | ---------------------------------------- |
+| `DATABASE_URL`  | PostgreSQL connection string             |
+| `SEED_PASSWORD` | Password for demo accounts (default: `password123`) |
+
+## Deploying to Cloudflare
 
 ```bash
-npm run dev
+bun run pages:build   # next build + Cloudflare worker bundle
+bun run deploy
 ```
 
-Una vez completada la configuración, puedes acceder a la aplicación utilizando las credenciales `admin@example.com` con contraseña `password123`.
+Set `DATABASE_URL` as an environment variable in the Cloudflare dashboard before deploying. Demo accounts are not seeded in production.
 
-Si encuentras errores durante la configuración, verifica que todas las variables de entorno estén correctamente definidas en `.env.local`, confirma que el schema se haya aplicado correctamente en Supabase, asegúrate de que el script de seeding se haya ejecutado sin errores y revisa que las dependencias estén instaladas correctamente.
+## Test accounts
+
+Created automatically on first `bun run dev`. Password for all: `password123` (or your `SEED_PASSWORD`).
+
+- `admin@unmsm.edu.pe` (admin)
+- `librarian@unmsm.edu.pe` (librarian)
+- `student@unmsm.edu.pe` (user)

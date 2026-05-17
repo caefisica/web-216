@@ -1,22 +1,37 @@
-import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
-export default async function middleware(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  if (!session) {
-    // If user is not logged in and trying to access protected routes
-    if (request.nextUrl.pathname.startsWith("/admin")) {
-      return NextResponse.redirect(new URL("/auth/login", request.url));
+export async function middleware(request: NextRequest): Promise<NextResponse> {
+  if (request.method === "GET") {
+    const response = NextResponse.next();
+    const token = request.cookies.get("session")?.value ?? null;
+    if (token !== null) {
+      response.cookies.set("session", token, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+        sameSite: "lax",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+      });
     }
-    // You can add more protected routes here
+    return response;
+  }
+
+  const origin = request.headers.get("Origin");
+  const host = request.headers.get("Host");
+  if (!origin || !host) {
+    return new NextResponse(null, { status: 403 });
+  }
+  try {
+    if (new URL(origin).host !== host) {
+      return new NextResponse(null, { status: 403 });
+    }
+  } catch {
+    return new NextResponse(null, { status: 403 });
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

@@ -15,8 +15,7 @@ import { deleteFile, uploadFile } from "@/lib/storage";
 import { z } from "zod";
 import { authenticatedAction, protectedAction, getSession } from "@/lib/protected-action";
 import { BookIdSchema, SearchSchema, UpdateBookSchema, CreateBookSchema } from "./schemas";
-
-// --- ACTIONS ---
+import { Ok, Err } from "@/lib/result";
 
 /**
  * Fetches books with optional filters.
@@ -94,7 +93,7 @@ export async function getBooks(filters?: z.infer<typeof SearchSchema>) {
     .where(inArray(bookCategories.bookId, bookIds));
 
   let heartedBookIds: string[] = [];
-  if (session?.user) {
+  if (session.user) {
     const hearts = await db
       .select({ bookId: userBookHearts.bookId })
       .from(userBookHearts)
@@ -116,12 +115,9 @@ export async function getBooks(filters?: z.infer<typeof SearchSchema>) {
   });
 }
 
-/**
- * Fetches all books favorited by the current user.
- */
 export async function getFavoriteBooks() {
   const session = await getSession();
-  if (!session?.user) return [];
+  if (!session.user) return [];
 
   const hearts = await db
     .select({ bookId: userBookHearts.bookId })
@@ -186,9 +182,6 @@ export async function getFavoriteBooks() {
   });
 }
 
-/**
- * Fetches a single book by ID with full details.
- */
 export async function getBookById(id: string) {
   const session = await getSession();
 
@@ -217,7 +210,7 @@ export async function getBookById(id: string) {
     .where(eq(books.id, id))
     .limit(1);
 
-  if (booksData.length === 0) return null;
+  if (booksData.length === 0) return Err("not_found");
   const book = booksData[0];
 
   const imagesData = await db
@@ -235,7 +228,7 @@ export async function getBookById(id: string) {
     .where(eq(bookCategories.bookId, id));
 
   let isHearted = false;
-  if (session?.user) {
+  if (session.user) {
     const heart = await db
       .select()
       .from(userBookHearts)
@@ -244,18 +237,15 @@ export async function getBookById(id: string) {
     isHearted = heart.length > 0;
   }
 
-  return {
+  return Ok({
     ...book,
     images: imagesData,
     coverImage: imagesData.find((img) => img.isCover) || imagesData[0],
     categories: categoriesData.map((c) => c.category),
     isHearted,
-  };
+  });
 }
 
-/**
- * Toggles the favorite status (heart) for a book.
- */
 export const toggleHeart = authenticatedAction(BookIdSchema, async ({ bookId }, session) => {
   const existing = await db
     .select()
@@ -277,9 +267,6 @@ export const toggleHeart = authenticatedAction(BookIdSchema, async ({ bookId }, 
   }
 });
 
-/**
- * Creates a borrow request for a book.
- */
 export const createBorrowRequest = authenticatedAction(
   z.object({ bookId: z.uuid(), note: z.string().optional() }),
   async ({ bookId, note }, session) => {
@@ -295,16 +282,10 @@ export const createBorrowRequest = authenticatedAction(
   },
 );
 
-/**
- * Fetches all book categories.
- */
 export async function getCategories() {
   return await db.select().from(categories).orderBy(categories.name);
 }
 
-/**
- * Uploads a book image to S3.
- */
 export const uploadBookImage = protectedAction(
   z.instanceof(FormData),
   ["librarian", "admin"],
@@ -321,9 +302,6 @@ export const uploadBookImage = protectedAction(
   },
 );
 
-/**
- * Deletes a book image from both the database and S3.
- */
 export const deleteBookImage = protectedAction(
   z.object({ imageId: z.uuid(), bookId: z.uuid() }),
   ["librarian", "admin"],
@@ -346,9 +324,6 @@ export const deleteBookImage = protectedAction(
   },
 );
 
-/**
- * Sets an image as the cover for a book.
- */
 export const setCoverImage = protectedAction(
   z.object({ imageId: z.uuid(), bookId: z.uuid(), isExisting: z.boolean() }),
   ["librarian", "admin"],
@@ -367,9 +342,6 @@ export const setCoverImage = protectedAction(
   },
 );
 
-/**
- * Adds an image record to a book.
- */
 export const addBookImage = protectedAction(
   z.object({
     bookId: z.uuid(),
@@ -397,11 +369,8 @@ export const addBookImage = protectedAction(
   },
 );
 
-// --- ADMINISTRATIVE ACTIONS ---
+// ADMINISTRATIVE ACTIONS
 
-/**
- * Deletes a book and its associated images from S3.
- */
 export const deleteBook = protectedAction(
   BookIdSchema,
   ["librarian", "admin"],
@@ -421,9 +390,6 @@ export const deleteBook = protectedAction(
   },
 );
 
-/**
- * Updates metadata for an existing book.
- */
 export const updateBook = protectedAction(
   UpdateBookSchema,
   ["librarian", "admin"],
@@ -451,9 +417,6 @@ export const updateBook = protectedAction(
   },
 );
 
-/**
- * Creates a new book entry.
- */
 export const createBook = protectedAction(
   CreateBookSchema,
   ["librarian", "admin"],

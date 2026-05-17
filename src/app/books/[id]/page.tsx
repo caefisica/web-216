@@ -3,6 +3,7 @@ import { getBookById, getCategories } from "@/features/books/actions";
 import BookClient from "./book-client";
 import { NotFoundState } from "./components/not-found-state";
 import type { BookDetailed } from "@/features/books/types";
+import { isErr } from "@/lib/result";
 
 export default async function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,11 +11,15 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
 
   const [book, categories] = await Promise.all([getBookById(id), getCategories()]);
 
-  if (!book) {
+  if (isErr(book)) {
     return <NotFoundState />;
   }
 
   return (
-    <BookClient initialBook={book as BookDetailed} categories={categories} user={session?.user} />
+    <BookClient
+      initialBook={book.value as BookDetailed}
+      categories={categories}
+      user={session?.user}
+    />
   );
 }

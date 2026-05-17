@@ -50,7 +50,7 @@ export const getAdminStats = protectedAction(z.void(), ["librarian", "admin"], a
     db
       .select({ count: sql<number>`count(*)` })
       .from(user)
-      .where(gte(user.updatedAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))),
+      .where(gte(user.createdAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))),
   ]);
 
   return {

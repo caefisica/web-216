@@ -1,52 +1,25 @@
 "use client";
 
-import type React from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import Link from "next/link";
+import { signInAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-import Link from "next/link";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? "Iniciando sesión..." : "Iniciar sesión"}
+    </Button>
+  );
+}
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await authClient.signIn.email({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "¡Bienvenido de vuelta!",
-        description: "Has iniciado sesión correctamente.",
-      });
-
-      router.push("/");
-      router.refresh(); // Ensure session state is updated
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Error al iniciar sesión.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [state, formAction] = useActionState(signInAction, null);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -55,38 +28,31 @@ export default function SignInPage() {
           <CardTitle className="text-center">Iniciar sesión</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={formAction} className="space-y-4">
+            {state?.error && (
+              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">{state.error}</p>
+            )}
             <div>
               <Label htmlFor="email">Correo electrónico</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="tu@email.com"
-              />
+              <Input id="email" name="email" type="email" required placeholder="tu@email.com" />
             </div>
             <div>
               <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Input id="password" name="password" type="password" required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
-            </Button>
+            <SubmitButton />
           </form>
-          <p className="mt-4 text-center text-sm text-gray-600">
-            ¿No tienes una cuenta?{" "}
-            <Link href="/auth/signup" className="text-blue-600 hover:underline">
-              Registrarse
+          <div className="mt-4 flex flex-col items-center gap-2 text-sm text-gray-600">
+            <Link href="/auth/reset-password" className="text-blue-600 hover:underline">
+              ¿Olvidaste tu contraseña?
             </Link>
-          </p>
+            <span>
+              ¿No tienes una cuenta?{" "}
+              <Link href="/auth/signup" className="text-blue-600 hover:underline">
+                Registrarse
+              </Link>
+            </span>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -15,8 +15,7 @@ const RoleUpdateSchema = z.object({
 });
 
 const ProfileUpdateSchema = z.object({
-  name: z.string().optional(),
-  image: z.string().optional(),
+  name: z.string().min(1).optional(),
 });
 
 // --- ACTIONS ---
@@ -62,10 +61,7 @@ export const getUserActivity = authenticatedAction(z.void(), async (_, session) 
 export const updateUserProfile = authenticatedAction(ProfileUpdateSchema, async (data, session) => {
   const [updatedUser] = await db
     .update(user)
-    .set({
-      ...data,
-      updatedAt: new Date(),
-    })
+    .set(data)
     .where(eq(user.id, session.user.id))
     .returning();
 

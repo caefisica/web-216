@@ -1,18 +1,15 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { books, bookImages, bookCategories } from "@/lib/db/schema";
 import { moveFile, deleteFile, getFileUrl, uploadFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { eq, desc } from "drizzle-orm";
 
 export async function uploadBookImage(formData: FormData) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session) throw new Error("Unauthorized");
+  const { user } = await getCurrentSession();
+  if (!user) throw new Error("Unauthorized");
 
   const file = formData.get("file") as File;
   if (!file) throw new Error("No file provided");
@@ -23,11 +20,7 @@ export async function uploadBookImage(formData: FormData) {
   await uploadFile(fileName, buffer, file.type);
   const url = await getFileUrl(fileName);
 
-  return {
-    success: true,
-    url: url,
-    fileName: fileName,
-  };
+  return { success: true, url, fileName };
 }
 
 interface MoveImageResult {
@@ -64,56 +57,30 @@ export async function moveImageFromTemp(
   bookId: string,
 ): Promise<MoveImageResult> {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const { user } = await getCurrentSession();
+    if (!user) return { success: false, error: "Unauthorized" };
 
-    if (!session) {
-      return { success: false, error: "Unauthorized" };
-    }
-
-    // Generate new permanent file path
     const fileExt = tempFileName.split(".").pop();
     const newFileName = `${bookId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
     await moveFile(`temp/${tempFileName}`, newFileName);
 
-    // Construct the URL (S3/R2 usually follows a standard pattern)
-    // For R2, it's often https://<ACCOUNT_ID>.r2.cloudflarestorage.com/<BUCKET>/<KEY>
-    // but the user might prefer a custom domain. For now, we'll store the key or a generated public URL if the bucket is public.
     const publicUrl = `${process.env.S3_PUBLIC_URL}/${newFileName}`;
-
-    return {
-      success: true,
-      url: publicUrl,
-    };
+    return { success: true, url: publicUrl };
   } catch (error) {
     console.error("Unexpected error moving file:", error);
-    return {
-      success: false,
-      error: "Unexpected error occurred",
-    };
+    return { success: false, error: "Unexpected error occurred" };
   }
 }
 
 export async function saveBookWithImages(data: SaveBookData) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) throw new Error("Unauthorized");
+    const { user } = await getCurrentSession();
+    if (!user) throw new Error("Unauthorized");
 
     const { bookId, bookData, uploadedImages, selectedCategories } = data;
 
-    console.log("Starting save process for book:", bookId);
-
-    // 1. Move uploaded images
-    const finalImages: Array<{
-      url: string;
-      isCover: boolean;
-      altText: string;
-    }> = [];
+    const finalImages: Array<{ url: string; isCover: boolean; altText: string }> = [];
 
     for (const image of uploadedImages) {
       const moveResult = await moveImageFromTemp(image.fileName, bookId);
@@ -126,23 +93,14 @@ export async function saveBookWithImages(data: SaveBookData) {
       }
     }
 
-    // 2. Update book basic information
     await db
       .update(books)
-      .set({
-        ...bookData,
-        updatedAt: new Date(),
-      })
+      .set({ ...bookData, updatedAt: new Date() })
       .where(eq(books.id, bookId));
 
-    console.log("Book updated successfully");
-
-    // 3. Insert new images into book_images table
     if (finalImages.length > 0) {
       const existingImagesList = await db
-        .select({
-          displayOrder: bookImages.displayOrder,
-        })
+        .select({ displayOrder: bookImages.displayOrder })
         .from(bookImages)
         .where(eq(bookImages.bookId, bookId))
         .orderBy(desc(bookImages.displayOrder))
@@ -151,36 +109,29 @@ export async function saveBookWithImages(data: SaveBookData) {
       const nextDisplayOrder =
         existingImagesList.length > 0 ? (existingImagesList[0].displayOrder || 0) + 1 : 0;
 
-      const imageRecords = finalImages.map((img, index) => ({
-        bookId: bookId,
-        imageUrl: img.url,
-        isCover: img.isCover,
-        altText: img.altText || null,
-        displayOrder: nextDisplayOrder + index,
-      }));
-
-      await db.insert(bookImages).values(imageRecords);
-      console.log("Images inserted successfully");
+      await db.insert(bookImages).values(
+        finalImages.map((img, index) => ({
+          bookId,
+          imageUrl: img.url,
+          isCover: img.isCover,
+          altText: img.altText || null,
+          displayOrder: nextDisplayOrder + index,
+        })),
+      );
     }
 
-    // 4. Handle multiple categories
     try {
       await db.delete(bookCategories).where(eq(bookCategories.bookId, bookId));
-
       if (selectedCategories.length > 0) {
-        const categoryInserts = selectedCategories.map((categoryId) => ({
-          bookId: bookId,
-          categoryId: categoryId,
-        }));
-        await db.insert(bookCategories).values(categoryInserts);
+        await db
+          .insert(bookCategories)
+          .values(selectedCategories.map((categoryId) => ({ bookId, categoryId })));
       }
     } catch (categoryError) {
       console.warn("Multiple categories error:", categoryError);
     }
 
-    // 5. Revalidate the page to show updated data
     revalidatePath(`/books/${bookId}`);
-
     return {
       success: true,
       message: "Libro actualizado correctamente",
@@ -188,10 +139,7 @@ export async function saveBookWithImages(data: SaveBookData) {
     };
   } catch (error) {
     console.error("Error saving book:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Error inesperado",
-    };
+    return { success: false, error: error instanceof Error ? error.message : "Error inesperado" };
   }
 }
 
@@ -209,60 +157,39 @@ export async function cleanupTempFiles(fileNames: string[]) {
 
 export async function deleteBookImage(imageId: string, bookId: string) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!session) throw new Error("Unauthorized");
+    const { user } = await getCurrentSession();
+    if (!user) throw new Error("Unauthorized");
 
-    // Get image info first
     const imageDataList = await db
-      .select({
-        imageUrl: bookImages.imageUrl,
-      })
+      .select({ imageUrl: bookImages.imageUrl })
       .from(bookImages)
       .where(eq(bookImages.id, imageId))
       .limit(1);
 
-    if (imageDataList.length === 0) {
-      throw new Error("Image not found");
-    }
+    if (imageDataList.length === 0) throw new Error("Image not found");
 
-    const imageData = imageDataList[0];
-
-    // Extract file path from URL (key)
-    // URL pattern: https://.../book-id/timestamp_uuid.ext
-    const url = new URL(imageData.imageUrl);
+    const url = new URL(imageDataList[0].imageUrl);
     const parts = url.pathname.split("/");
     const key = parts.slice(parts.length - 2).join("/");
 
     await deleteFile(key);
-
-    // Delete from database
     await db.delete(bookImages).where(eq(bookImages.id, imageId));
-
-    // Revalidate the page
     revalidatePath(`/books/${bookId}`);
 
     return { success: true };
   } catch (error) {
     console.error("Error deleting image:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Error inesperado",
-    };
+    return { success: false, error: error instanceof Error ? error.message : "Error inesperado" };
   }
 }
 
 export async function setCoverImage(imageId: string, bookId: string, isExisting: boolean) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!session) throw new Error("Unauthorized");
+    const { user } = await getCurrentSession();
+    if (!user) throw new Error("Unauthorized");
 
     if (isExisting) {
       await db.update(bookImages).set({ isCover: false }).where(eq(bookImages.bookId, bookId));
-
       await db.update(bookImages).set({ isCover: true }).where(eq(bookImages.id, imageId));
     }
 
@@ -270,9 +197,6 @@ export async function setCoverImage(imageId: string, bookId: string, isExisting:
     return { success: true };
   } catch (error) {
     console.error("Error setting cover image:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Error inesperado",
-    };
+    return { success: false, error: error instanceof Error ? error.message : "Error inesperado" };
   }
 }

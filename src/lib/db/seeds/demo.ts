@@ -1,24 +1,30 @@
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "../schema";
+import { hashPassword } from "@/lib/auth/password";
 
-export async function seed(db: PostgresJsDatabase<typeof schema>) {
-  console.log("Seeding Library...");
+const SEED_USERS = [
+  { email: "admin@unmsm.edu.pe", name: "Admin", role: "admin" as const },
+  { email: "librarian@unmsm.edu.pe", name: "Librarian", role: "librarian" as const },
+  { email: "student@unmsm.edu.pe", name: "Student", role: "user" as const },
+];
 
-  const categoryData = [
-    { name: "Quantum Mechanics" },
-    { name: "Astrophysics" },
-    { name: "Computational Physics" },
-    { name: "Classical Mechanics" },
-    { name: "Thermodynamics & Statistical Mechanics" },
-    { name: "Electromagnetism" },
-    { name: "Solid State Physics" },
-  ];
+export async function runDemoSeed(db: PostgresJsDatabase<typeof schema>) {
+  console.log("Seeding demo users...");
 
-  for (const cat of categoryData) {
+  const password = process.env.SEED_PASSWORD ?? "password123";
+  const passwordHash = await hashPassword(password);
+
+  for (const u of SEED_USERS) {
     await db
-      .insert(schema.categories)
+      .insert(schema.user)
       .values({
-        name: cat.name,
+        id: crypto.randomUUID(),
+        email: u.email,
+        passwordHash,
+        name: u.name,
+        emailVerified: true,
+        role: u.role,
+        createdAt: new Date(),
       })
       .onConflictDoNothing();
   }

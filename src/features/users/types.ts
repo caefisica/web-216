@@ -5,7 +5,6 @@ export type UserBase = typeof user.$inferSelect;
 export type BorrowRequestBase = typeof borrowRequests.$inferSelect;
 
 export interface User extends UserBase {
-  // Numeric types from Drizzle/Postgres infer as strings
   totalDonations: string;
 }
 

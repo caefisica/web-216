@@ -8,7 +8,7 @@ import type { BookDetailed } from "@/features/books/types";
 
 export default async function HomePage() {
   const session = await getSession();
-  const user = session?.user as unknown as User | undefined;
+  const user = session.user as unknown as User | undefined;
   const userRole = user?.role;
   const isAdmin = user && (userRole === "librarian" || userRole === "admin");
 

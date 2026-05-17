@@ -1,5 +1,5 @@
 import { pgTable, text } from "drizzle-orm/pg-core";
-import { user, session, account, verification, Role } from "./auth";
+import { user, session, emailVerificationRequest, passwordResetSession, Role } from "./auth";
 import {
   categories,
   books,
@@ -13,8 +13,8 @@ import { donors, donations } from "./donations";
 export {
   user,
   session,
-  account,
-  verification,
+  emailVerificationRequest,
+  passwordResetSession,
   Role,
   categories,
   books,
