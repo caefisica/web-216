@@ -6,6 +6,7 @@ import { emailVerificationRequest as evTable } from "@/lib/db/schema";
 import { setUserEmailVerified } from "@/lib/auth/session";
 import { Ok, Err, isErr, type Result } from "@/lib/result";
 import { ExpiringTokenBucket } from "./rate-limit";
+import { generateOTP } from "./otp";
 
 export interface EmailVerificationRequest {
   id: string;
@@ -95,9 +96,4 @@ export async function deleteEmailVerificationCookie(): Promise<void> {
     sameSite: "lax",
     maxAge: 0,
   });
-}
-
-function generateOTP(): string {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
-  return String(n).padStart(6, "0");
 }

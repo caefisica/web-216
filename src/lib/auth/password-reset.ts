@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { passwordResetSession as prsTable, user as userTable } from "@/lib/db/schema";
 import { Ok, Err, type Result } from "@/lib/result";
+import { generateOTP } from "./otp";
 
 export interface PasswordResetSession {
   id: string;
@@ -104,9 +105,4 @@ export async function deletePasswordResetCookie(): Promise<void> {
     sameSite: "lax",
     maxAge: 0,
   });
-}
-
-function generateOTP(): string {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
-  return String(n).padStart(6, "0");
 }
