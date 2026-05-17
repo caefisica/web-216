@@ -58,8 +58,7 @@ export function HeaderClient({ user }: HeaderClientProps) {
               <BookOpen className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-semibold leading-none">Biblioteca 216</span>
-              <span className="text-xs text-gray-500 leading-none">Colección de física</span>
+              <span className="text-lg font-semibold leading-none">216</span>
             </div>
           </Link>
 

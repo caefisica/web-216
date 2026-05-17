@@ -16,8 +16,7 @@ export function Footer() {
                 <BookOpen className="h-5 w-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-semibold leading-none">Biblioteca 216</span>
-                <span className="text-xs text-gray-500 leading-none">Colección de física</span>
+                <span className="text-lg font-semibold leading-none">216</span>
               </div>
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed mb-4">
@@ -159,7 +158,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="text-sm text-gray-500 mb-4 md:mb-0">
-            © {new Date().getFullYear()} Biblioteca 216. Todos los derechos reservados.
+            © {new Date().getFullYear()} @caefisica. Todos los derechos reservados.
           </div>
           <div className="flex items-center space-x-6">
             <Link
