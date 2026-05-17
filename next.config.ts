@@ -24,8 +24,11 @@ const nextConfig: NextConfig = {
       "node_modules/better-auth/dist/adapters/memory-adapter/**/*",
     ],
   },
+  outputFileTracingIncludes: {
+    "*": ["./node_modules/pg-cloudflare/dist/**", "./node_modules/pg-cloudflare/esm/**"],
+  },
   serverExternalPackages: [
-    "postgres",
+    "pg",
     "drizzle-orm",
     "@better-auth/kysely-adapter",
     "@better-auth/mongo-adapter",
