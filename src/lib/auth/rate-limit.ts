@@ -18,7 +18,7 @@ export class RefillingTokenBucket<_Key> {
   }
 
   public consume(key: _Key, cost: number): boolean {
-    let bucket = this.storage.get(key) ?? null;
+    const bucket = this.storage.get(key) ?? null;
     const now = Date.now();
     if (bucket === null) {
       this.storage.set(key, { count: this.max - cost, refilledAt: now });
@@ -43,7 +43,7 @@ export class Throttler<_Key> {
   }
 
   public consume(key: _Key): boolean {
-    let counter = this.storage.get(key) ?? null;
+    const counter = this.storage.get(key) ?? null;
     const now = Date.now();
     if (counter === null) {
       this.storage.set(key, { timeout: 0, updatedAt: now });
@@ -81,7 +81,7 @@ export class ExpiringTokenBucket<_Key> {
   }
 
   public consume(key: _Key, cost: number): boolean {
-    let bucket = this.storage.get(key) ?? null;
+    const bucket = this.storage.get(key) ?? null;
     const now = Date.now();
     if (bucket === null) {
       this.storage.set(key, { count: this.max - cost, createdAt: now });
