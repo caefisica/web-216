@@ -1,20 +1,14 @@
-name: 🚓 Análisis de código
+name: codeql
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "/app/"
-      - "/components/"
-      - "/hooks/"
-      - "/lib/"
+      - "src/**"
   push:
-    branches: [main]
+    branches: [master]
     paths:
-      - "/app/"
-      - "/components/"
-      - "/hooks/"
-      - "/lib/"
+      - "src/**"
   schedule:
     - cron: "0 11 * * 5" # Viernes a las 11:00
 
@@ -32,9 +26,9 @@ jobs:
         language: ["javascript"]
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: actions/checkout@v6
+      - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/autobuild@v4
+      - uses: github/codeql-action/analyze@v4
