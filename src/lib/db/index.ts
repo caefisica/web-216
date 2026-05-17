@@ -38,8 +38,10 @@ export async function getDb(): Promise<Database> {
     const connectionString = await resolveConnectionString();
     pool = new Pool({
       connectionString,
-      max: 5,
-      idleTimeoutMillis: 20_000,
+      max: 1,
+      connectionTimeoutMillis: 10_000,
+      idleTimeoutMillis: 10_000,
+      keepAlive: true,
       allowExitOnIdle: true,
     });
 
