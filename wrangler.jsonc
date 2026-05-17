@@ -3,7 +3,7 @@
   "name": "216",
   "main": ".open-next/worker.js",
   "compatibility_date": "2024-12-30",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": ["nodejs_compat_v2"],
   "minify": true,
   "workers_dev": true,
   "preview_urls": true,
@@ -15,6 +15,12 @@
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "216",
+    },
+  ],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "3ad78d6978c74a96ac1bb03e4cc63840",
     },
   ],
   "r2_buckets": [
